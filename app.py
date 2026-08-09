@@ -96,18 +96,20 @@ def create_app(config_class=Config):
         db.create_all()
 
     return app
-
-
+ 
+ 
+app = create_app()
+ 
+ 
 if __name__ == "__main__":
     import sys, io
     if sys.platform == "win32":
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
-
-    app = create_app()
+ 
     print("=" * 60)
     print("[*] Online Examination System (OES) Server Starting...")
     print("[+] Local Access: http://127.0.0.1:5000")
-    print("[+] Admin Credentials: admin@oes.com / admin123")
-    print("[+] Demo Student:      aarav@oes.com / student123")
+    print("[+] Super Admin: sharon@oes.com / Sharon123")
+    print("[+] Student:     sumit@oes.com / Sumit123")
     print("=" * 60)
     app.run(debug=True, port=5000)
