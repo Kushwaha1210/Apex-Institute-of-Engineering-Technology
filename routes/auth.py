@@ -182,9 +182,8 @@ def register():
             db.session.add(admin_notif)
             db.session.commit()
 
-            flash(f"Enrollment successful! Your allocated Roll Number is {roll_no}.", "success")
-            login_user(new_student)
-            return redirect(url_for("student.dashboard"))
+            flash(f"Enrollment successful! Your allocated Roll Number is {roll_no}. Please log in with your credentials.", "success")
+            return redirect(url_for("auth.login"))
         except Exception as e:
             db.session.rollback()
             flash("An error occurred while creating your account. Please try again.", "danger")

@@ -76,19 +76,23 @@ def seed_database(force=False):
             fac.set_password(fpwd)
             db.session.add(fac)
 
-        # 3. Demo Enrolled Students (Enrolled across all 9 Academic Disciplines)
+        # 3. Default Registered Student (Sumit Kushwaha)
         students_data = [
             ("Sumit Kushwaha", "BCS2026001", "Computer Science & Engineering", "sumit@oes.com", "+91 98111 22334", "Sumit123"),
-            ("Laukik Lakhat", "BIT2026001", "Information Technology", "lovekik@oes.com", "+91 98222 33445", "Laukik123"),
-            ("Priya Verma", "BAI2026001", "Artificial Intelligence & Data Science", "priya@oes.com", "+91 98333 44556", "Priya123"),
-            ("Rohit Sharma", "BCY2026001", "Cyber Security & Digital Forensics", "rohit@oes.com", "+91 98444 55667", "Rohit123"),
-            ("Sneha Patel", "BEC2026001", "Electronics & Communication Engineering", "sneha@oes.com", "+91 98555 66778", "Sneha123"),
-            ("Aman Singh", "BEE2026001", "Electrical Engineering", "aman@oes.com", "+91 98666 77889", "Aman123"),
-            ("Vikas Yadav", "BME2026001", "Mechanical Engineering", "vikas@oes.com", "+91 98777 88990", "Vikas123"),
-            ("Pooja Nair", "BCE2026001", "Civil Engineering", "pooja@oes.com", "+91 98888 99001", "Pooja123"),
-            ("Rohan Roy", "BBT2026001", "Biotechnology Engineering", "rohan@oes.com", "+91 98999 00112", "Rohan123"),
-            ("Sahil Gupta", "BCS2026002", "Computer Science & Engineering", "sahil@oes.com", "+91 98123 45678", "Sahil123"),
         ]
+
+        if "--with-demo-students" in sys.argv:
+            students_data.extend([
+                ("Laukik Lakhat", "BIT2026001", "Information Technology", "lovekik@oes.com", "+91 98222 33445", "Laukik123"),
+                ("Priya Verma", "BAI2026001", "Artificial Intelligence & Data Science", "priya@oes.com", "+91 98333 44556", "Priya123"),
+                ("Rohit Sharma", "BCY2026001", "Cyber Security & Digital Forensics", "rohit@oes.com", "+91 98444 55667", "Rohit123"),
+                ("Sneha Patel", "BEC2026001", "Electronics & Communication Engineering", "sneha@oes.com", "+91 98555 66778", "Sneha123"),
+                ("Aman Singh", "BEE2026001", "Electrical Engineering", "aman@oes.com", "+91 98666 77889", "Aman123"),
+                ("Vikas Yadav", "BME2026001", "Mechanical Engineering", "vikas@oes.com", "+91 98777 88990", "Vikas123"),
+                ("Pooja Nair", "BCE2026001", "Civil Engineering", "pooja@oes.com", "+91 98888 99001", "Pooja123"),
+                ("Rohan Roy", "BBT2026001", "Biotechnology Engineering", "rohan@oes.com", "+91 98999 00112", "Rohan123"),
+                ("Sahil Gupta", "BCS2026002", "Computer Science & Engineering", "sahil@oes.com", "+91 98123 45678", "Sahil123"),
+            ])
 
         created_students = []
         for name, roll, dept, email, phone, pwd in students_data:
@@ -450,35 +454,36 @@ def seed_database(force=False):
             )
             db.session.add(ans)
 
-        # Sahil took IT Web Exam with Grade A
-        web_exam = created_exams[1]
-        sahil = created_students[1]
-        att2 = Attempt(
-            student_id=sahil.id,
-            exam_id=web_exam.id,
-            started_at=datetime.utcnow() - timedelta(hours=5, minutes=20),
-            submitted_at=datetime.utcnow() - timedelta(hours=5),
-            score=20.0,
-            total_marks=25.0,
-            percentage=80.0,
-            grade="A",
-            is_passed=True,
-            violations_count=1,
-            status="completed"
-        )
-        att2.generate_certificate_id()
-        db.session.add(att2)
-        db.session.flush()
-
-        for q in web_exam.questions:
-            ans = Answer(
-                attempt_id=att2.id,
-                question_id=q.id,
-                selected_option=q.correct_option,
-                is_correct=True,
-                marks_awarded=q.marks
+        # Sahil took IT Web Exam with Grade A (only if demo students created)
+        if len(created_students) > 1:
+            web_exam = created_exams[1]
+            sahil = created_students[1]
+            att2 = Attempt(
+                student_id=sahil.id,
+                exam_id=web_exam.id,
+                started_at=datetime.utcnow() - timedelta(hours=5, minutes=20),
+                submitted_at=datetime.utcnow() - timedelta(hours=5),
+                score=20.0,
+                total_marks=25.0,
+                percentage=80.0,
+                grade="A",
+                is_passed=True,
+                violations_count=1,
+                status="completed"
             )
-            db.session.add(ans)
+            att2.generate_certificate_id()
+            db.session.add(att2)
+            db.session.flush()
+
+            for q in web_exam.questions:
+                ans = Answer(
+                    attempt_id=att2.id,
+                    question_id=q.id,
+                    selected_option=q.correct_option,
+                    is_correct=True,
+                    marks_awarded=q.marks
+                )
+                db.session.add(ans)
 
         # 7. Seed Official Announcements & Notifications
         print("[*] Seeding Official Announcements & Notifications...")
