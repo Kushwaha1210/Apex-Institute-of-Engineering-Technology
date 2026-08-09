@@ -5,9 +5,9 @@ Features the WebGL 3D Interactive Particle Background and Scrollytelling
 academic showcase with live system metrics and course universe.
 """
 
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, jsonify
 from flask_login import current_user
-from models import Subject, Exam, Question, User, Attempt
+from models import db, Subject, Exam, Question, User, Attempt
 
 main_bp = Blueprint("main", __name__)
 
@@ -96,3 +96,27 @@ def index():
         subjects=subjects,
         departments=DEPARTMENTS_DATA
     )
+
+
+@main_bp.route("/api/sync/students")
+def sync_students():
+    """API endpoint to fetch all registered students for desktop synchronization."""
+    students = User.query.filter_by(role="student").order_by(User.id.asc()).all()
+    data = []
+    for s in students:
+        data.append({
+            "id": s.id,
+            "roll_no": s.roll_no,
+            "name": s.name,
+            "department": s.department,
+            "email": s.email,
+            "phone": s.phone,
+            "is_active": s.is_active,
+            "created_at": s.created_at.isoformat() if s.created_at else None
+        })
+    return jsonify({
+        "status": "success",
+        "total": len(data),
+        "students": data
+    })
+
