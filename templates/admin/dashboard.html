@@ -1,0 +1,268 @@
+{% extends "base.html" %}
+
+{% block title %}Faculty & Administration Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Header Banner -->
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 16px;">
+    <div>
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+        <h1 style="font-size: 2rem; margin: 0;" data-flip-text="Faculty Control Center">Faculty Control Center</h1>
+        {% if is_superadmin %}
+          <span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.45); font-size: 0.85rem; padding: 5px 12px; font-weight: 800;">
+            👑 Dean & Super Admin • All Departments
+          </span>
+        {% else %}
+          <span class="badge" style="background: rgba(51, 188, 101, 0.2); color: #5DFFD9; border: 1px solid rgba(51, 188, 101, 0.45); font-size: 0.85rem; padding: 5px 12px; font-weight: 800;">
+            🏛️ HOD • {{ admin_department }}
+          </span>
+        {% endif %}
+      </div>
+      <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0;">
+        Logged in as <strong style="color: #ffffff;">{{ current_user.name }}</strong> &bull; Monitor enrolled candidates, question bank, active examinations, and merit lists.
+      </p>
+    </div>
+    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+      {% if is_superadmin %}
+        <a href="{{ url_for('admin.departments') }}" class="btn btn-primary">🏛️ Departments &amp; HODs</a>
+      {% endif %}
+      <a href="{{ url_for('admin.students') }}" class="btn btn-secondary">👥 Enrolled Students</a>
+      {% if not is_superadmin %}
+        <a href="{{ url_for('admin.questions') }}" class="btn btn-secondary">📝 Question Bank</a>
+      {% endif %}
+      <a href="{{ url_for('admin.exams') }}" class="btn btn-secondary">🎯 Exam Builder</a>
+      <a href="{{ url_for('admin.results') }}" class="btn btn-gold">📊 Merit List & CSV</a>
+    </div>
+  </div>
+
+  <!-- KPI Stats Counters -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">👥</div>
+      <div>
+        <div class="stat-value">{{ total_students }}</div>
+        <div class="stat-label">Enrolled Students</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">📝</div>
+      <div>
+        <div class="stat-value">{{ total_questions }}</div>
+        <div class="stat-label">Question Bank MCQs</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">🎯</div>
+      <div>
+        <div class="stat-value">{{ total_exams }}</div>
+        <div class="stat-label">Published Exams</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">📊</div>
+      <div>
+        <div class="stat-value">{{ pass_rate }}%</div>
+        <div class="stat-label">Overall Pass Rate</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Grid: Recent Enrolled Students & Recent Exam Attempts -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px;">
+    
+    <!-- Recent Enrolled Students -->
+    <div class="glass-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+        <h3 style="font-size: 1.2rem;">Newly Enrolled Students</h3>
+        <a href="{{ url_for('admin.students') }}" style="color: #818cf8; font-size: 0.85rem; font-weight: 600;">View All ({{ total_students }}) &rarr;</a>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Student Name</th>
+              <th>Roll No</th>
+              <th>Branch</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in recent_students %}
+              <tr>
+                <td><strong>{{ s.name }}</strong></td>
+                <td><code style="color: #06b6d4;">{{ s.roll_no }}</code></td>
+                <td>{{ s.department.split()[0] }}</td>
+                <td>
+                  {% if s.is_active %}
+                    <span class="badge badge-passed">Active</span>
+                  {% else %}
+                    <span class="badge badge-failed">Blocked</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% else %}
+              <tr><td colspan="4" style="text-align: center; color: var(--text-dim);">No students registered yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Recent Completed Attempts -->
+    <div class="glass-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+        <h3 style="font-size: 1.2rem;">Live Examination Submissions</h3>
+        <a href="{{ url_for('admin.results') }}" style="color: #5DFFD9; font-size: 0.85rem; font-weight: 600;">Full Merit List &rarr;</a>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Exam Title</th>
+              <th>Score</th>
+              <th>Grade</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for a in recent_attempts %}
+              <tr>
+                <td>{{ a.student.name if a.student else 'Unknown' }}</td>
+                <td>{{ a.exam.title[:24] }}...</td>
+                <td><strong>{{ a.percentage }}%</strong></td>
+                <td>
+                  <span class="badge {% if a.is_passed %}badge-passed{% else %}badge-failed{% endif %}">
+                    {{ a.grade }}
+                  </span>
+                </td>
+              </tr>
+            {% else %}
+              <tr><td colspan="4" style="text-align: center; color: var(--text-dim);">No submissions recorded yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Staggered Bento Intelligence Matrix (GSAP Parity) -->
+  <section class="staggered-grid-wrapper" data-staggered-grid style="padding-top: 40px; padding-bottom: 20px;">
+    <div style="text-align: center; margin-bottom: 16px;">
+      <div class="step-pill">⚡ Faculty Intelligence Matrix</div>
+    </div>
+
+    <!-- Kinetic Center Split Typography -->
+    <div class="staggered-center-text" data-text="ACADEMIC SENTINEL" style="font-size: clamp(2rem, 5vw, 3.8rem);">
+      ACADEMIC SENTINEL
+    </div>
+
+    <div class="staggered-grid-full">
+      <div class="staggered-grid-item" data-col="0">
+        <span style="font-size: 1.8rem;">👥</span>
+        <div style="font-size: 0.85rem; font-weight: 700; color: #ffffff;">{{ total_students }} Enrolled</div>
+        <div style="font-size: 0.72rem; color: var(--text-muted);">Verified Roster</div>
+      </div>
+
+      <div class="staggered-grid-item" data-col="1">
+        <span style="font-size: 1.8rem;">🎯</span>
+        <div style="font-size: 0.85rem; font-weight: 700; color: #ffffff;">{{ total_exams }} Active</div>
+        <div style="font-size: 0.72rem; color: var(--text-muted);">Scheduled Exams</div>
+      </div>
+
+      <div class="staggered-grid-item" data-col="2">
+        <span style="font-size: 1.8rem;">📊</span>
+        <div style="font-size: 0.85rem; font-weight: 700; color: #ffffff;">{{ pass_rate }}% Pass Rate</div>
+        <div style="font-size: 0.72rem; color: var(--text-muted);">Academic Metric</div>
+      </div>
+
+      <!-- Center Expanding Bento Container -->
+      <div class="bento-container" data-col="3">
+        <div class="bento-item active">
+          <div class="bento-active-content">
+            <div>
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                <span class="badge badge-passed">Sentinel Guard</span>
+                <span style="font-size: 1.5rem;">🛡️</span>
+              </div>
+              <h3 style="font-size: 1.15rem; font-weight: 800; color: #ffffff; margin-bottom: 4px;">Anti-Cheating Proctoring</h3>
+              <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.45;">
+                Monitors active window focus, prevents browser tab switching, and automatically logs unverified candidate sessions.
+              </p>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(93, 255, 217, 0.15); padding-top: 8px;">
+              <span style="font-size: 0.75rem; color: #5DFFD9; font-weight: 700;">Live Integrity Guard</span>
+              <a href="{{ url_for('admin.announcements') }}" style="font-size: 0.75rem; color: #12DCEF;">Broadcast Notice &rarr;</a>
+            </div>
+          </div>
+          <div class="bento-inactive-content">
+            <span style="font-size: 1.8rem;">🛡️</span>
+            <span style="font-size: 0.75rem; font-weight: 700; color: #5DFFD9; text-transform: uppercase;">Proctor</span>
+          </div>
+        </div>
+
+        <div class="bento-item inactive">
+          <div class="bento-active-content">
+            <div>
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                <span class="badge" style="background: rgba(18, 220, 239, 0.2); color: #12DCEF; border: 1px solid rgba(18, 220, 239, 0.4);">Auto Grading</span>
+                <span style="font-size: 1.5rem;">⚡</span>
+              </div>
+              <h3 style="font-size: 1.15rem; font-weight: 800; color: #ffffff; margin-bottom: 4px;">Instant Scorecard & Analytics</h3>
+              <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.45;">
+                Calculates negative penalties, pass criteria, and publishes merit rankings with {{ pass_rate }}% institutional pass rate.
+              </p>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(93, 255, 217, 0.15); padding-top: 8px;">
+              <span style="font-size: 0.75rem; color: #12DCEF; font-weight: 700;">CSV Export Ready</span>
+              <a href="{{ url_for('admin.results') }}" style="font-size: 0.75rem; color: #5DFFD9;">View Merit List &rarr;</a>
+            </div>
+          </div>
+          <div class="bento-inactive-content">
+            <span style="font-size: 1.8rem;">⚡</span>
+            <span style="font-size: 0.75rem; font-weight: 700; color: #12DCEF; text-transform: uppercase;">Grading</span>
+          </div>
+        </div>
+
+        <div class="bento-item inactive">
+          <div class="bento-active-content">
+            <div>
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                <span class="badge" style="background: rgba(51, 188, 101, 0.2); color: #5DFFD9; border: 1px solid rgba(51, 188, 101, 0.4);">Certificates</span>
+                <span style="font-size: 1.5rem;">📜</span>
+              </div>
+              <h3 style="font-size: 1.15rem; font-weight: 800; color: #ffffff; margin-bottom: 4px;">Official Digital Credentials</h3>
+              <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.45;">
+                Generates verifiable achievement certificates with institutional stamps and unique serial numbers.
+              </p>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(93, 255, 217, 0.15); padding-top: 8px;">
+              <span style="font-size: 0.75rem; color: #5DFFD9; font-weight: 700;">QR Verifiable</span>
+              <span style="font-size: 0.75rem; color: var(--text-dim);">Print-Ready</span>
+            </div>
+          </div>
+          <div class="bento-inactive-content">
+            <span style="font-size: 1.8rem;">📜</span>
+            <span style="font-size: 0.75rem; font-weight: 700; color: #5DFFD9; text-transform: uppercase;">Honors</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="staggered-grid-item" data-col="6">
+        <span style="font-size: 1.8rem;">📢</span>
+        <div style="font-size: 0.85rem; font-weight: 700; color: #ffffff;">Live Feeds</div>
+        <div style="font-size: 0.72rem; color: var(--text-muted);">Instant Push</div>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/staggered_bento_grid.js') }}"></script>
+{% endblock %}

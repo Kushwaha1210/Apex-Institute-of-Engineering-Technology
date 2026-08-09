@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Academic Departments &amp; HODs Directory | Super Admin Portal{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Header Banner -->
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 16px;">
+    <div>
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+        <h1 style="font-size: 2rem; margin: 0;" data-flip-text="Academic Departments &amp; HODs">Academic Departments &amp; HODs</h1>
+        <span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.45); font-size: 0.85rem; padding: 5px 12px; font-weight: 800;">
+          👑 Super Admin Governance
+        </span>
+      </div>
+      <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0;">
+        Oversee all 9 university disciplines, monitor designated Faculty HODs, student enrollments, and academic performance.
+      </p>
+    </div>
+    <div>
+      <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">
+        &larr; Back to Overview Dashboard
+      </a>
+    </div>
+  </div>
+
+  <!-- 9 Departments Grid -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px; margin-bottom: 40px;">
+    {% for dept in departments %}
+      <div class="glass-card" style="padding: 24px 22px; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid rgba(93, 255, 217, 0.25); transition: all 0.3s ease; position: relative;">
+        <div>
+          <!-- Top Row: Icon, Code & Action -->
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 2.2rem; filter: drop-shadow(0 0 10px rgba(93, 255, 217, 0.4));">{{ dept.icon }}</span>
+              <div>
+                <span class="badge" style="background: rgba(51, 188, 101, 0.15); color: #5DFFD9; border: 1px solid rgba(51, 188, 101, 0.35); font-weight: 800;">
+                  Code: {{ dept.code }}
+                </span>
+              </div>
+            </div>
+            <span class="badge badge-passed" style="font-size: 0.75rem;">
+              Active Discipline
+            </span>
+          </div>
+
+          <!-- Department Name -->
+          <h2 style="font-size: 1.25rem; font-weight: 800; color: #ffffff; margin-bottom: 14px; line-height: 1.35;">
+            {{ dept.name }}
+          </h2>
+
+          <!-- HOD Admin Details Card -->
+          <div style="background: rgba(10, 18, 14, 0.85); border: 1px dashed rgba(245, 158, 11, 0.35); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 16px;">
+            <div style="font-size: 0.76rem; font-weight: 700; color: #FBBF24; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+              👨‍🏫 Assigned HOD / Admin:
+            </div>
+            {% if dept.hod %}
+              <div style="font-size: 0.95rem; font-weight: 800; color: #ffffff;">{{ dept.hod.name }}</div>
+              <div style="font-size: 0.8rem; color: #5DFFD9; font-family: monospace; margin-top: 2px;">{{ dept.hod.email }}</div>
+              <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 2px;">Faculty ID: {{ dept.hod.roll_no }}</div>
+            {% else %}
+              <div style="font-size: 0.88rem; color: var(--text-dim); font-style: italic;">No HOD Assigned</div>
+            {% endif %}
+          </div>
+
+          <!-- Live Metrics Mini Grid -->
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; margin-bottom: 18px;">
+            <div style="background: rgba(255, 255, 255, 0.04); padding: 8px; border-radius: var(--radius-sm);">
+              <div style="font-size: 1.15rem; font-weight: 800; color: #12DCEF;">{{ dept.student_count }}</div>
+              <div style="font-size: 0.72rem; color: var(--text-muted);">Students</div>
+            </div>
+            <div style="background: rgba(255, 255, 255, 0.04); padding: 8px; border-radius: var(--radius-sm);">
+              <div style="font-size: 1.15rem; font-weight: 800; color: #5DFFD9;">{{ dept.exam_count }}</div>
+              <div style="font-size: 0.72rem; color: var(--text-muted);">Exams</div>
+            </div>
+            <div style="background: rgba(255, 255, 255, 0.04); padding: 8px; border-radius: var(--radius-sm);">
+              <div style="font-size: 1.15rem; font-weight: 800; color: #FBBF24;">{{ dept.pass_rate }}%</div>
+              <div style="font-size: 0.72rem; color: var(--text-muted);">Pass Rate</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Button -->
+        <a href="{{ url_for('admin.department_detail', dept_name=dept.name) }}" class="btn btn-primary" style="width: 100%; text-align: center; justify-content: center; font-size: 0.88rem;">
+          <span>Explore HOD &amp; Students Data &rarr;</span>
+        </a>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

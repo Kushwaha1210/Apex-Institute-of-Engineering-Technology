@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Exam Builder & Scheduling | Faculty Portal{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+    <div>
+      <h1 class="dashboard-hero-title" style="font-size: 2rem;" data-flip-text="Exam Builder & Scheduling">Exam Builder &amp; Scheduling</h1>
+      <p class="dashboard-hero-sub">
+        Configure examination parameters, durations, passing scores, negative marks, and question pools.
+      </p>
+    </div>
+    <button type="button" class="btn-pill-glow" onclick="document.getElementById('create-exam-modal').style.display='flex';">
+      ➕ Create New Exam
+    </button>
+  </div>
+
+  <!-- Published Exams 3D Perspective Coverflow Carousel Stage -->
+  {% if exams %}
+    <div class="perspective-carousel" data-perspective-carousel data-slide-width="340" data-rotation-step="38" data-inactive-scale="0.82" data-loop="true" data-autoplay="false">
+      <div class="perspective-viewport">
+        <div class="perspective-track">
+          {% for exam in exams %}
+            {% set stats = exam.get_stats() %}
+            <div class="perspective-slide">
+              <div class="perspective-slide-card">
+                <div>
+                  <!-- Header: Logo on Left, Title on Right -->
+                  <div class="card-v2-header">
+                    <div class="card-v2-icon">
+                      {{ exam.subject.icon if exam.subject else '🎯' }}
+                    </div>
+                    <div class="card-v2-meta">
+                      <h4>{{ exam.title }}</h4>
+                      <p>{{ exam.description or 'Academic examination configured with proctoring and automated grading.' }}</p>
+                    </div>
+                  </div>
+
+                  <!-- Tags / Type Section -->
+                  <div class="card-v2-tags-section">
+                    <div class="card-v2-tags-label">Type &bull; Exam Rules</div>
+                    <div class="card-v2-tags-row">
+                      <span class="card-v2-tag-pill">⏱️ {{ exam.duration_minutes }}m</span>
+                      <span class="card-v2-tag-pill">📋 {{ exam.questions|length }} Qs</span>
+                      <span class="card-v2-tag-pill">🎯 Pass {{ exam.passing_marks }}/{{ exam.total_marks }}</span>
+                      <span class="card-v2-tag-pill" style="{% if exam.is_published %}color: #5DFFD9; border-color: rgba(51, 188, 101, 0.4);{% else %}color: #f87171; border-color: rgba(239, 68, 68, 0.4);{% endif %}">
+                        {% if exam.is_published %}Published 🌐{% else %}Hidden 👁️{% endif %}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Dual Action Buttons Footer -->
+                <div class="card-v2-actions-dual">
+                  <form method="POST" action="{{ url_for('admin.toggle_exam_publish', exam_id=exam.id) }}" style="display: contents;">
+                    <button type="submit" class="btn-v2-cancel" style="width: 100%;">
+                      {% if exam.is_published %}👁️ Unpublish{% else %}🌐 Publish{% endif %}
+                    </button>
+                  </form>
+
+                  <form method="POST" action="{{ url_for('admin.delete_exam', exam_id=exam.id) }}" onsubmit="return confirm('Delete this exam and all associated attempt records?');" style="display: contents;">
+                    <button type="submit" class="btn-v2-website" style="background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4); color: #f87171; box-shadow: none;">
+                      🗑️ Delete
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <div class="glass-card" style="text-align: center; padding: 48px; margin-bottom: 28px;">
+      <p style="color: var(--text-dim); font-size: 1.1rem;">No exams created yet. Click "Create New Exam" above.</p>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Create Exam Modal -->
+<div id="create-exam-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.75); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(8px);">
+  <div class="auth-card" style="width: 90%; max-width: 680px; max-height: 90vh; overflow-y: auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-glass); padding-bottom: 12px;">
+      <h3 style="font-size: 1.3rem; font-family: var(--font-heading); color: #ffffff;">Build New Online Examination</h3>
+      <button class="alert-close" onclick="document.getElementById('create-exam-modal').style.display='none';">&times;</button>
+    </div>
+
+    <form method="POST" action="{{ url_for('admin.create_exam') }}">
+      <div class="form-group">
+        <label class="form-label">Exam Title *</label>
+        <input type="text" name="title" class="form-control" placeholder="e.g. Python Core & Advanced Certification Exam" required>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Subject Domain *</label>
+          <select name="subject_id" class="form-control" required>
+            {% for s in subjects %}
+              <option value="{{ s.id }}">{{ s.icon }} {{ s.name }} ({{ s.code }})</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Duration (Minutes) *</label>
+          <input type="number" name="duration_minutes" class="form-control" value="30" min="5" max="180" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Passing Marks Threshold *</label>
+          <input type="number" step="0.5" name="passing_marks" class="form-control" value="12.5" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Negative Marking per Wrong Answer</label>
+          <input type="number" step="0.25" name="negative_marks" class="form-control" value="0.25" min="0">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Instructions / Description</label>
+        <textarea name="description" class="form-control" rows="2" placeholder="Syllabus, rules, and guidelines for candidates..."></textarea>
+      </div>
+
+      <!-- Advanced Proctoring & Exam Toggles -->
+      <div style="background: rgba(15, 23, 42, 0.6); padding: 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-glass); margin-bottom: 20px;">
+        <div style="font-weight: 700; font-size: 0.88rem; color: #60a5fa; margin-bottom: 12px;">🛡️ Anti-Cheating &amp; Policy Settings</div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px; font-size: 0.85rem;">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" name="shuffle_questions" value="1" checked>
+            <span>Shuffle questions &amp; options order per candidate</span>
+          </label>
+
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" name="allow_multiple_attempts" value="1">
+            <span>Allow multiple attempts (Practice / Mock Mode)</span>
+          </label>
+
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" name="is_published" value="1" checked>
+            <span>Publish immediately (visible on Student Lobby)</span>
+          </label>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%;">Create &amp; Publish Examination</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/perspective_carousel.js') }}"></script>
+{% endblock %}

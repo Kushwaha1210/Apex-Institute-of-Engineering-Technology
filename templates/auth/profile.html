@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}User Profile | OES Portal{% endblock %}
+
+{% block content %}
+<div class="container container-sm">
+  <div class="glass-card">
+    <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-glass);">
+      <div style="width: 56px; height: 56px; border-radius: var(--radius-full); background: rgba(79, 70, 229, 0.2); border: 2px solid var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.8rem;">
+        👤
+      </div>
+      <div>
+        <h2 style="font-size: 1.5rem;">{{ user.name }}</h2>
+        <p style="color: var(--text-muted); font-size: 0.85rem;">
+          {{ user.role|capitalize }} Account • Enrolled {{ user.created_at.strftime('%B %Y') }}
+        </p>
+      </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('auth.profile') }}">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input type="text" name="name" class="form-control" value="{{ user.name }}" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Roll Number</label>
+          <input type="text" class="form-control" value="{{ user.roll_no or 'N/A' }}" disabled style="opacity: 0.7;">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Department / Stream</label>
+          <input type="text" name="department" class="form-control" value="{{ user.department }}" {% if user.is_admin %}disabled{% endif %}>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" class="form-control" value="{{ user.email }}" disabled style="opacity: 0.7;">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Phone Number</label>
+        <input type="tel" name="phone" class="form-control" value="{{ user.phone or '' }}" placeholder="+91 ...">
+      </div>
+
+      <div class="form-group" style="border-top: 1px solid var(--border-glass); padding-top: 16px; margin-top: 16px;">
+        <label class="form-label">Change Password (Leave blank to keep current)</label>
+        <div class="password-input-wrapper">
+          <input type="password" name="new_password" class="form-control password-field" placeholder="New Password (min 6 chars)">
+          <button type="button" class="password-toggle-btn" aria-label="Toggle password visibility" title="Show/Hide Password" tabindex="-1">
+            <span class="eye-icon">👁️</span>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Save Profile Changes</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

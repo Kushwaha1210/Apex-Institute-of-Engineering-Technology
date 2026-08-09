@@ -1,0 +1,438 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard | Examination Lobby{% endblock %}
+
+{% block content %}
+<!-- Hero Header (Image 1 Theme Match: "Make Things Simple !") -->
+<div style="margin-bottom: 24px;">
+  <h1 class="dashboard-hero-title" data-flip-text="Make Things Simple !">Make Things Simple !</h1>
+  <p class="dashboard-hero-sub">
+    Academic examination and real-time certification in a simple, distraction-free environment.
+  </p>
+</div>
+
+<!-- Department Filter Pill & Action Button Row -->
+<div class="filter-chips-bar">
+  <div class="filter-chips-group">
+    <div class="filter-chip active" style="cursor: default;">
+      <span class="status-dot"></span>
+      <span>My Department &bull; {{ current_user.department }} ({{ exams|length }} Tests)</span>
+    </div>
+  </div>
+
+  <div>
+    {% if exams %}
+      <a href="{{ url_for('student.take_exam', exam_id=exams[0].id) }}" class="btn-pill-glow">
+        <span>⚡ Quick Start: {{ exams[0].title.split()[0] }}</span>
+      </a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Two-Column Grid: Main Feed (Left) + Widgets (Right) -->
+<div class="dashboard-grid-layout">
+  
+  <!-- Left Main Column -->
+  <div>
+    <!-- Featured Highlighted Exam Card (Image 1 Featured Blue Glow Card) -->
+    {% if exams %}
+      {% set featured = exams[0] %}
+      <div class="featured-glow-card">
+        <div class="featured-card-header">
+          <div style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: #60a5fa;">
+            <span>🔵</span>
+            <span style="text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">Live Featured Assessment</span>
+          </div>
+          <div style="display: flex; gap: 6px; font-size: 0.8rem; color: var(--text-dim);">
+            <span style="background: rgba(255,255,255,0.06); padding: 2px 8px; border-radius: 12px;">{{ featured.questions|length }} Questions</span>
+            <span style="background: rgba(255,255,255,0.06); padding: 2px 8px; border-radius: 12px;">{{ featured.duration_minutes }} Mins</span>
+          </div>
+        </div>
+
+        <div class="featured-card-body">
+          <div class="featured-icon-badge">
+            {{ featured.subject.icon if featured.subject else '📝' }}
+          </div>
+          <div class="featured-info" style="flex: 1;">
+            <h3>{{ featured.title }}</h3>
+            <p>{{ featured.description or 'Official university evaluation covering core concepts, algorithms, practical problem solving, and architecture.' }}</p>
+          </div>
+        </div>
+
+        <!-- Participants & Timing row -->
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+          <div>⏱️ Schedule: <strong style="color: #ffffff;">08:00 AM &bull; 08:00 PM</strong></div>
+          <div style="display: flex; gap: 6px;">
+            <span class="card-v2-tag-pill">{{ current_user.department.split()[0] if current_user.department else 'CSE' }}</span>
+            <span class="card-v2-tag-pill">Passing: {{ featured.passing_marks }}/{{ featured.total_marks }}</span>
+          </div>
+        </div>
+
+        <!-- Animated Striped Progress Bar (Image 1) -->
+        <div class="progress-container">
+          <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-dim);">Progress :</span>
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill-striped" style="width: 75%;"></div>
+          </div>
+          <span style="font-size: 0.85rem; font-weight: 800; color: #60a5fa;">%75 Ready</span>
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- ==========================================================================
+         IMAGE 2: Active & Published Examinations 3D Perspective Universe
+         ========================================================================== -->
+    <div class="section-heading-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+      <div>
+        <h2 class="section-title">
+          {{ display_dept_title or selected_dept or 'Active & Published Examinations' }} &bull; Question Banks &amp; Exams
+        </h2>
+        <p class="section-subtitle">Verified curriculum examinations tailored for {{ current_user.name }} ({{ current_user.roll_no }}).</p>
+      </div>
+      <div>
+        <span class="badge badge-medium" style="font-size: 0.8rem;">{{ exams|length }} Tests Active</span>
+      </div>
+    </div>
+
+    <!-- 3D Perspective Coverflow Carousel Stage for Active Exams -->
+    {% if exams %}
+      <div class="perspective-carousel" data-perspective-carousel data-slide-width="340" data-rotation-step="38" data-inactive-scale="0.82" data-loop="true" data-autoplay="false">
+        <div class="perspective-viewport">
+          <div class="perspective-track">
+            {% for exam in exams %}
+              <div class="perspective-slide">
+                <div class="perspective-slide-card">
+                  <div>
+                    <!-- Card Header: Logo on Left, Title on Right -->
+                    <div class="card-v2-header">
+                      <div class="card-v2-icon">
+                        {{ exam.subject.icon if exam.subject else '⚡' }}
+                      </div>
+                      <div class="card-v2-meta">
+                        <h4>{{ exam.title }}</h4>
+                        <p>{{ exam.description or 'Comprehensive evaluation covering theoretical foundations and practical domain problems.' }}</p>
+                      </div>
+                    </div>
+
+                    <!-- Tags / Type Section -->
+                    <div class="card-v2-tags-section">
+                      <div class="card-v2-tags-label">Type &bull; Parameters</div>
+                      <div class="card-v2-tags-row">
+                        <span class="card-v2-tag-pill">⏱️ {{ exam.duration_minutes }}m</span>
+                        <span class="card-v2-tag-pill">🎯 {{ exam.total_marks }} Marks</span>
+                        {% if exam.negative_marks > 0 %}
+                          <span class="card-v2-tag-pill" style="color: #f87171;">-{{ exam.negative_marks }} Neg</span>
+                        {% else %}
+                          <span class="card-v2-tag-pill">No Neg</span>
+                        {% endif %}
+                        <span class="card-v2-tag-pill">Pass {{ exam.passing_marks }}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Dual Action Buttons Footer -->
+                  <div class="card-v2-actions-dual">
+                    <button type="button" class="btn-v2-cancel" onclick="alert('📋 Exam Syllabus: {{ exam.title }}\n\n• Duration: {{ exam.duration_minutes }} mins\n• Questions: {{ exam.questions|length }}\n• Passing Marks: {{ exam.passing_marks }}\n• Negative Penalty: -{{ exam.negative_marks }} per wrong answer.');">
+                      Syllabus
+                    </button>
+
+                    {% if exam.id in completed_exam_ids and not exam.allow_multiple_attempts %}
+                      <a href="{{ url_for('student.history') }}" class="btn-v2-website" style="background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.4); color: #34d399;">
+                        Completed ✅
+                      </a>
+                    {% else %}
+                      <a href="{{ url_for('student.take_exam', exam_id=exam.id) }}" class="btn-v2-website">
+                        Take Exam &rarr;
+                      </a>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    {% else %}
+      <div class="glass-card" style="text-align: center; padding: 48px;">
+        <p style="color: var(--text-dim);">No active examinations published at this moment.</p>
+      </div>
+    {% endif %}
+
+  </div>
+
+  <!-- Right Sidebar Column (Image 1 Widgets: Today Note, My Files, Activity) -->
+  <div class="widget-stack">
+    
+    <!-- 1. Today Note Widget (Interactive Editable Note) -->
+    <div class="widget-today-note">
+      <div class="widget-title-row">
+        <div class="widget-title">Today note</div>
+        <button type="button" class="btn-icon-round" style="width: 28px; height: 28px; font-size: 0.82rem; background: rgba(255, 109, 41, 0.15); color: #FF6D29; border: 1px solid rgba(255, 109, 41, 0.35);" onclick="toggleNoteEditor()" title="Edit Note">
+          ✏️
+        </button>
+      </div>
+
+      <!-- Note Display View -->
+      <div id="note-display-container">
+        <div class="today-note-content" id="today-note-text" onclick="toggleNoteEditor()" style="cursor: pointer;" title="Click to Edit Note">
+          {{ current_user.custom_note or "Going to the evaluation hall and planning official exams for the semester ahead 🏀" }}
+        </div>
+        <div class="today-note-footer">
+          <div class="today-note-time">
+            <span>🔔</span>
+            <span id="note-time-label">Active</span>
+          </div>
+          <button type="button" class="btn-today-action" id="today-action-btn" onclick="cycleNoteStatus()">
+            {{ current_user.note_status or "✓ I'm going" }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Note Inline Editor View -->
+      <div id="note-editor-container" style="display: none; margin-top: 8px;">
+        <textarea 
+          id="note-textarea" 
+          class="form-control" 
+          rows="3" 
+          style="font-size: 0.86rem; line-height: 1.4; padding: 10px; resize: vertical;"
+          placeholder="Write your personal study note, exam reminder, or goals here..."
+        >{{ current_user.custom_note or "Going to the evaluation hall and planning official exams for the semester ahead 🏀" }}</textarea>
+        
+        <div style="display: flex; gap: 8px; margin-top: 10px; justify-content: flex-end;">
+          <button type="button" class="btn btn-secondary btn-sm" style="font-size: 0.76rem; padding: 4px 10px;" onclick="toggleNoteEditor()">
+            Cancel
+          </button>
+          <button type="button" class="btn btn-primary btn-sm" style="font-size: 0.76rem; padding: 4px 14px;" onclick="saveTodayNote()">
+            Save Note ✓
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. My Files / Scorecards Widget -->
+    <div class="widget-my-files">
+      <div class="widget-title-row">
+        <div class="widget-title">My Scorecards &amp; Files</div>
+        <a href="{{ url_for('student.history') }}" style="color: var(--text-dim); text-decoration: none; font-size: 0.8rem;">View all &rarr;</a>
+      </div>
+
+      <div class="file-dropzone-box">
+        <div class="file-dropzone-icon">📜</div>
+        <div style="font-size: 0.85rem; font-weight: 600; color: #ffffff; margin-bottom: 4px;">Verified Certificates</div>
+        <p style="font-size: 0.75rem; color: var(--text-dim);">{{ stats.certificates_earned }} Certificates Earned</p>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; font-size: 0.8rem;">
+        <span style="color: var(--text-dim);">Passed Rate</span>
+        <span style="color: #6ee7b7; font-weight: 700;">{{ stats.pass_rate }}%</span>
+      </div>
+    </div>
+
+    <!-- 3. Mini Activity & Analytics Widget -->
+    <div class="widget-activity-chart">
+      <div class="widget-title-row">
+        <div class="widget-title">Study & Exam Activity</div>
+        <span class="badge" style="background: rgba(59, 130, 246, 0.2); color: #93c5fd; font-size: 0.72rem;">Weekly</span>
+      </div>
+
+      <!-- Sparkline Activity Bars -->
+      <div class="activity-chart-placeholder">
+        <div class="chart-bar" style="height: 35%;"></div>
+        <div class="chart-bar" style="height: 50%;"></div>
+        <div class="chart-bar" style="height: 40%;"></div>
+        <div class="chart-bar" style="height: 65%;"></div>
+        <div class="chart-bar" style="height: 45%;"></div>
+        <div class="chart-bar highlight" style="height: 85%;"></div>
+        <div class="chart-bar" style="height: 70%;"></div>
+        <div class="chart-bar" style="height: 60%;"></div>
+        <div class="chart-bar" style="height: 75%;"></div>
+        <div class="chart-bar highlight" style="height: 90%;"></div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--text-dim); margin-top: 8px;">
+        <span>Jan</span>
+        <span>Feb</span>
+        <span>Mar</span>
+        <span style="color: #60a5fa; font-weight: 700;">Apr</span>
+        <span>May</span>
+        <span>Jun</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Student Assessment Intelligence Matrix (GSAP Parity) -->
+  <section class="staggered-grid-wrapper" data-staggered-grid style="padding-top: 40px; padding-bottom: 20px;">
+    <div style="text-align: center; margin-bottom: 16px;">
+      <div class="step-pill">🎓 Student Examination Matrix</div>
+    </div>
+
+    <!-- Kinetic Center Split Typography -->
+    <div class="staggered-center-text" data-text="ACADEMIC MASTERY" style="font-size: clamp(2rem, 5vw, 3.8rem);">
+      ACADEMIC MASTERY
+    </div>
+
+    <div class="staggered-grid-full">
+      <div class="staggered-grid-item" data-col="0">
+        <span style="font-size: 1.8rem;">🎯</span>
+        <div style="font-size: 0.85rem; font-weight: 700; color: #ffffff;">{{ exams|length }} Available</div>
+        <div style="font-size: 0.72rem; color: var(--text-muted);">Active Tests</div>
+      </div>
+
+      <div class="staggered-grid-item" data-col="1">
+        <span style="font-size: 1.8rem;">⏱️</span>
+        <div style="font-size: 0.85rem; font-weight: 700; color: #ffffff;">Live Timers</div>
+        <div style="font-size: 0.72rem; color: var(--text-muted);">Real-Time Sync</div>
+      </div>
+
+      <div class="staggered-grid-item" data-col="2">
+        <span style="font-size: 1.8rem;">⚡</span>
+        <div style="font-size: 0.85rem; font-weight: 700; color: #ffffff;">Negative Rules</div>
+        <div style="font-size: 0.72rem; color: var(--text-muted);">Penalty Shield</div>
+      </div>
+
+      <!-- Center Expanding Bento Container -->
+      <div class="bento-container" data-col="3">
+        <div class="bento-item active">
+          <div class="bento-active-content">
+            <div>
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                <span class="badge badge-passed">Candidate Profile</span>
+                <span style="font-size: 1.5rem;">🎓</span>
+              </div>
+              <h3 style="font-size: 1.15rem; font-weight: 800; color: #ffffff; margin-bottom: 4px;">{{ current_user.name }}</h3>
+              <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.45;">
+                Roll: <strong style="color: #5DFFD9;">{{ current_user.roll_no }}</strong> &bull; Dept: {{ current_user.department }}
+              </p>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(93, 255, 217, 0.15); padding-top: 8px;">
+              <span style="font-size: 0.75rem; color: #5DFFD9; font-weight: 700;">Account Verified</span>
+              <a href="{{ url_for('student.history') }}" style="font-size: 0.75rem; color: #12DCEF;">View Scorecards &rarr;</a>
+            </div>
+          </div>
+          <div class="bento-inactive-content">
+            <span style="font-size: 1.8rem;">🎓</span>
+            <span style="font-size: 0.75rem; font-weight: 700; color: #5DFFD9; text-transform: uppercase;">Profile</span>
+          </div>
+        </div>
+
+        <div class="bento-item inactive">
+          <div class="bento-active-content">
+            <div>
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                <span class="badge" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4);">Proctor Guard</span>
+                <span style="font-size: 1.5rem;">🛡️</span>
+              </div>
+              <h3 style="font-size: 1.15rem; font-weight: 800; color: #ffffff; margin-bottom: 4px;">Anti-Cheat Compliance</h3>
+              <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.45;">
+                Zero tab-switch violations recorded. Full-screen integrity strictly verified on every exam attempt.
+              </p>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(93, 255, 217, 0.15); padding-top: 8px;">
+              <span style="font-size: 0.75rem; color: #12DCEF; font-weight: 700;">100% Integrity</span>
+              <span style="font-size: 0.75rem; color: #5DFFD9;">Active Guard</span>
+            </div>
+          </div>
+          <div class="bento-inactive-content">
+            <span style="font-size: 1.8rem;">🛡️</span>
+            <span style="font-size: 0.75rem; font-weight: 700; color: #12DCEF; text-transform: uppercase;">Security</span>
+          </div>
+        </div>
+
+        <div class="bento-item inactive">
+          <div class="bento-active-content">
+            <div>
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                <span class="badge" style="background: rgba(51, 188, 101, 0.2); color: #5DFFD9; border: 1px solid rgba(51, 188, 101, 0.4);">Digital Crest</span>
+                <span style="font-size: 1.5rem;">🏆</span>
+              </div>
+              <h3 style="font-size: 1.15rem; font-weight: 800; color: #ffffff; margin-bottom: 4px;">Achievement Credentials</h3>
+              <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.45;">
+                Upon scoring above the passing mark, official certificates with unique IDs and QR seals are awarded instantly.
+              </p>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(93, 255, 217, 0.15); padding-top: 8px;">
+              <span style="font-size: 0.75rem; color: #5DFFD9; font-weight: 700;">Print-Ready PDF</span>
+              <a href="{{ url_for('student.history') }}" style="font-size: 0.75rem; color: #12DCEF;">Download &rarr;</a>
+            </div>
+          </div>
+          <div class="bento-inactive-content">
+            <span style="font-size: 1.8rem;">🏆</span>
+            <span style="font-size: 0.75rem; font-weight: 700; color: #5DFFD9; text-transform: uppercase;">Awards</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="staggered-grid-item" data-col="6">
+        <span style="font-size: 1.8rem;">📜</span>
+        <div style="font-size: 0.85rem; font-weight: 700; color: #ffffff;">Grade A+</div>
+        <div style="font-size: 0.72rem; color: var(--text-muted);">Verified Rank</div>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleNoteEditor() {
+  const display = document.getElementById("note-display-container");
+  const editor = document.getElementById("note-editor-container");
+  const textarea = document.getElementById("note-textarea");
+  if (!display || !editor) return;
+
+  if (editor.style.display === "none") {
+    editor.style.display = "block";
+    display.style.display = "none";
+    if (textarea) textarea.focus();
+  } else {
+    editor.style.display = "none";
+    display.style.display = "block";
+  }
+}
+
+function saveTodayNote() {
+  const textarea = document.getElementById("note-textarea");
+  const noteText = textarea ? textarea.value.trim() : "";
+  if (!noteText) {
+    alert("Please enter some text for your note.");
+    return;
+  }
+
+  fetch("{{ url_for('student.update_note') }}", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ note: noteText })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.status === "success") {
+      document.getElementById("today-note-text").innerText = data.note;
+      document.getElementById("note-time-label").innerText = data.time_text;
+      toggleNoteEditor();
+    }
+  })
+  .catch(err => {
+    console.error("Error saving note:", err);
+  });
+}
+
+function cycleNoteStatus() {
+  const btn = document.getElementById("today-action-btn");
+  const statuses = ["✓ I'm going", "🎯 In Assessment", "⭐ High Priority", "✅ Completed"];
+  let currentIdx = statuses.indexOf(btn.innerText.trim());
+  let nextStatus = statuses[(currentIdx + 1) % statuses.length];
+  btn.innerText = nextStatus;
+
+  const textarea = document.getElementById("note-textarea");
+  const noteText = textarea ? textarea.value.trim() : "";
+
+  fetch("{{ url_for('student.update_note') }}", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ note: noteText, status: nextStatus })
+  });
+}
+</script>
+<script src="{{ url_for('static', filename='js/staggered_bento_grid.js') }}"></script>
+<script src="{{ url_for('static', filename='js/perspective_carousel.js') }}"></script>
+{% endblock %}

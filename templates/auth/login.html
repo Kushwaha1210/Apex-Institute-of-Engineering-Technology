@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In | Online Examination Portal{% endblock %}
+
+{% block content %}
+<div class="auth-container" style="max-width: 620px; margin: 0 auto;">
+  <div class="auth-card" style="padding: 32px 36px;">
+    
+    <!-- Top Brand Header -->
+    <div style="text-align: center; margin-bottom: 22px;">
+      <div class="brand-icon-logo" style="margin: 0 auto 14px auto; width: 48px; height: 48px; font-size: 1.5rem;">
+        🏛️
+      </div>
+      <h2 id="login-title" style="font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800; color: #ffffff; margin-bottom: 6px;">
+        Sign In to Portal
+      </h2>
+      <p id="login-subtitle" style="color: var(--text-muted); font-size: 0.88rem;">
+        Access live examinations, evaluate performance & download verified certificates.
+      </p>
+    </div>
+
+    <!-- Dual-Mode Auth Tab Switcher -->
+    <div class="auth-tab-switch">
+      <button type="button" class="auth-tab-btn active" id="tab-student" onclick="switchLoginMode('student')">
+        <span>🎓</span>
+        <span>Candidate Portal</span>
+      </button>
+      <button type="button" class="auth-tab-btn faculty-tab" id="tab-faculty" onclick="switchLoginMode('faculty')">
+        <span>🏛️</span>
+        <span>Faculty & Administration</span>
+      </button>
+    </div>
+
+    <!-- Main Sign In Form -->
+    <form method="POST" action="{{ url_for('auth.login') }}" id="login-form">
+      
+      <!-- Hidden Role Mode -->
+      <input type="hidden" id="auth-mode" name="auth_mode" value="student">
+
+      <!-- ==============================================
+           FACULTY / HOD VISUAL SELECTION GRID
+           ============================================== -->
+      <div id="faculty-selection-wrapper" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <span style="font-size: 0.82rem; font-weight: 700; color: #FBBF24; text-transform: uppercase; letter-spacing: 0.5px;">
+            ⚡ Select Your Faculty Role / Department:
+          </span>
+          <span style="font-size: 0.76rem; color: var(--text-dim);">10 Authorized Chairs</span>
+        </div>
+
+        <div class="faculty-grid">
+          <!-- 0. Super Admin / Dean -->
+          <div class="faculty-card dean-card selected" onclick="selectFaculty('sharon@oes.com', 'Dr. Sharon Samuel (Principal & Super Admin)', this)">
+            <span style="font-size: 1.6rem;">👑</span>
+            <div>
+              <div style="font-size: 0.86rem; font-weight: 800; color: #FBBF24;">Dr. Sharon Samuel</div>
+              <div style="font-size: 0.72rem; color: var(--text-muted);">Principal & Dean of Academics (Super Admin)</div>
+            </div>
+          </div>
+
+          <!-- 1. Information Technology (Prof. Bhushan Chaudhari) -->
+          <div class="faculty-card" onclick="selectFaculty('bhushan@oes.com', 'Prof. Bhushan Chaudhari (Information Technology)', this)">
+            <span style="font-size: 1.4rem;">🌐</span>
+            <div>
+              <div style="font-size: 0.84rem; font-weight: 700; color: #ffffff;">Prof. Bhushan Chaudhari</div>
+              <div style="font-size: 0.72rem; color: #5DFFD9;">HOD • Information Technology</div>
+            </div>
+          </div>
+
+          <!-- 2. Computer Science & Engineering (Dr. Rajesh Sharma) -->
+          <div class="faculty-card" onclick="selectFaculty('hod.cse@oes.com', 'Dr. Rajesh Sharma (Computer Science & Eng.)', this)">
+            <span style="font-size: 1.4rem;">💻</span>
+            <div>
+              <div style="font-size: 0.84rem; font-weight: 700; color: #ffffff;">Dr. Rajesh Sharma</div>
+              <div style="font-size: 0.72rem; color: #5DFFD9;">HOD • Computer Science & Eng.</div>
+            </div>
+          </div>
+
+          <!-- 3. Artificial Intelligence & Data Science -->
+          <div class="faculty-card" onclick="selectFaculty('hod.aids@oes.com', 'Dr. Amit Kulkarni (AI & Data Science)', this)">
+            <span style="font-size: 1.4rem;">🧠</span>
+            <div>
+              <div style="font-size: 0.84rem; font-weight: 700; color: #ffffff;">Dr. Amit Kulkarni</div>
+              <div style="font-size: 0.72rem; color: #5DFFD9;">HOD • AI & Data Science</div>
+            </div>
+          </div>
+
+          <!-- 4. Cyber Security & Digital Forensics -->
+          <div class="faculty-card" onclick="selectFaculty('hod.cyber@oes.com', 'Prof. Vikram Malhotra (Cyber Security)', this)">
+            <span style="font-size: 1.4rem;">🛡️</span>
+            <div>
+              <div style="font-size: 0.84rem; font-weight: 700; color: #ffffff;">Prof. Vikram Malhotra</div>
+              <div style="font-size: 0.72rem; color: #5DFFD9;">HOD • Cyber Security</div>
+            </div>
+          </div>
+
+          <!-- 5. Electronics & Communication -->
+          <div class="faculty-card" onclick="selectFaculty('hod.ece@oes.com', 'Dr. Neha Deshmukh (ECE)', this)">
+            <span style="font-size: 1.4rem;">📡</span>
+            <div>
+              <div style="font-size: 0.84rem; font-weight: 700; color: #ffffff;">Dr. Neha Deshmukh</div>
+              <div style="font-size: 0.72rem; color: #5DFFD9;">HOD • Electronics & Comm.</div>
+            </div>
+          </div>
+
+          <!-- 6. Electrical Engineering -->
+          <div class="faculty-card" onclick="selectFaculty('hod.ee@oes.com', 'Prof. Suresh Patil (Electrical Eng.)', this)">
+            <span style="font-size: 1.4rem;">⚡</span>
+            <div>
+              <div style="font-size: 0.84rem; font-weight: 700; color: #ffffff;">Prof. Suresh Patil</div>
+              <div style="font-size: 0.72rem; color: #5DFFD9;">HOD • Electrical Engineering</div>
+            </div>
+          </div>
+
+          <!-- 7. Mechanical Engineering -->
+          <div class="faculty-card" onclick="selectFaculty('hod.me@oes.com', 'Dr. Sanjay Joshi (Mechanical Eng.)', this)">
+            <span style="font-size: 1.4rem;">⚙️</span>
+            <div>
+              <div style="font-size: 0.84rem; font-weight: 700; color: #ffffff;">Dr. Sanjay Joshi</div>
+              <div style="font-size: 0.72rem; color: #5DFFD9;">HOD • Mechanical Engineering</div>
+            </div>
+          </div>
+
+          <!-- 8. Civil Engineering -->
+          <div class="faculty-card" onclick="selectFaculty('hod.ce@oes.com', 'Prof. Ritu Saxena (Civil Eng.)', this)">
+            <span style="font-size: 1.4rem;">🏗️</span>
+            <div>
+              <div style="font-size: 0.84rem; font-weight: 700; color: #ffffff;">Prof. Ritu Saxena</div>
+              <div style="font-size: 0.72rem; color: #5DFFD9;">HOD • Civil Engineering</div>
+            </div>
+          </div>
+
+          <!-- 9. Biotechnology Engineering -->
+          <div class="faculty-card" onclick="selectFaculty('hod.bt@oes.com', 'Dr. Ananya Roy (Biotechnology Eng.)', this)">
+            <span style="font-size: 1.4rem;">🧬</span>
+            <div>
+              <div style="font-size: 0.84rem; font-weight: 700; color: #ffffff;">Dr. Ananya Roy</div>
+              <div style="font-size: 0.72rem; color: #5DFFD9;">HOD • Biotechnology Eng.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Selected Faculty Active Indicator -->
+        <div id="faculty-selected-pill" style="margin-bottom: 16px; padding: 10px 14px; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: var(--radius-sm); font-size: 0.84rem; color: #FBBF24; display: flex; align-items: center; justify-content: space-between;">
+          <span>Authenticating As: <strong id="selected-faculty-text" style="color: #ffffff;">Dr. Sharon Samuel (Principal & Super Admin)</strong></span>
+          <span style="font-size: 0.75rem; background: rgba(245, 158, 11, 0.25); padding: 2px 8px; border-radius: var(--radius-pill); font-weight: 700;">Active</span>
+        </div>
+      </div>
+
+      <!-- ==============================================
+           STUDENT / MANUAL IDENTIFIER FIELD
+           ============================================== -->
+      <div class="form-group" id="identifier-group">
+        <label class="form-label" for="identifier" id="identifier-label">College Roll No or Registered Email *</label>
+        <input 
+          type="text" 
+          id="identifier" 
+          name="identifier" 
+          class="form-control" 
+          placeholder="e.g. 22BCS101 or sumit@oes.com" 
+          required 
+          autofocus
+        >
+      </div>
+
+      <!-- Password Input Field -->
+      <div class="form-group">
+        <label class="form-label" for="password" id="password-label">Password *</label>
+        <div class="password-input-wrapper">
+          <input 
+            type="password" 
+            id="password" 
+            name="password" 
+            class="form-control password-field" 
+            placeholder="••••••••" 
+            required
+          >
+          <button type="button" class="password-toggle-btn" aria-label="Toggle password visibility" title="Show/Hide Password" tabindex="-1">
+            <span class="eye-icon">👁️</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
+        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-muted); cursor: pointer;">
+          <input type="checkbox" name="remember" value="1">
+          <span>Remember session</span>
+        </label>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-lg" id="submit-btn" style="width: 100%; margin-top: 4px;">
+        Sign In & Access Examination Lobby &rarr;
+      </button>
+    </form>
+
+    <!-- Student Registration Footer Link -->
+    <div id="register-footer-link" style="text-align: center; margin-top: 24px; padding-top: 18px; border-top: 1px solid rgba(93, 255, 217, 0.16);">
+      <p style="font-size: 0.88rem; color: var(--text-muted);">
+        Don't have an enrolled student account? 
+        <a href="{{ url_for('auth.register') }}" style="color: #5DFFD9; font-weight: 700; text-decoration: none;">Create an Account</a>
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function switchLoginMode(mode) {
+  const tabStudent = document.getElementById('tab-student');
+  const tabFaculty = document.getElementById('tab-faculty');
+  const authModeInput = document.getElementById('auth-mode');
+  const facultyWrapper = document.getElementById('faculty-selection-wrapper');
+  const identifierGroup = document.getElementById('identifier-group');
+  const identifierInput = document.getElementById('identifier');
+  const identifierLabel = document.getElementById('identifier-label');
+  const passwordLabel = document.getElementById('password-label');
+  const loginTitle = document.getElementById('login-title');
+  const loginSubtitle = document.getElementById('login-subtitle');
+  const submitBtn = document.getElementById('submit-btn');
+  const registerFooter = document.getElementById('register-footer-link');
+
+  if (mode === 'faculty') {
+    tabStudent.classList.remove('active');
+    tabFaculty.classList.add('active');
+    authModeInput.value = 'faculty';
+
+    loginTitle.textContent = 'Faculty & Administration Portal';
+    loginSubtitle.textContent = 'Authorized Dean Office & Department HOD Control Center.';
+    
+    // Show faculty grid, hide manual identifier input
+    facultyWrapper.style.display = 'block';
+    identifierGroup.style.display = 'none';
+    identifierInput.value = 'sharon@oes.com'; // default selected
+
+    passwordLabel.textContent = 'Faculty Passcode / Password *';
+    submitBtn.textContent = 'Authenticate & Enter Faculty Center →';
+    submitBtn.style.background = 'linear-gradient(135deg, #F59E0B 0%, #33BC65 100%)';
+    submitBtn.style.boxShadow = '0 0 25px rgba(245, 158, 11, 0.4)';
+    registerFooter.style.display = 'none';
+  } else {
+    tabFaculty.classList.remove('active');
+    tabStudent.classList.add('active');
+    authModeInput.value = 'student';
+
+    loginTitle.textContent = 'Candidate Portal Sign In';
+    loginSubtitle.textContent = 'Access live examinations, evaluate performance & download verified certificates.';
+
+    facultyWrapper.style.display = 'none';
+    identifierGroup.style.display = 'block';
+    identifierInput.value = '';
+    identifierInput.placeholder = 'e.g. 22BCS101 or sumit@oes.com';
+
+    passwordLabel.textContent = 'Password *';
+    submitBtn.textContent = 'Sign In & Access Examination Lobby →';
+    submitBtn.style.background = '';
+    submitBtn.style.boxShadow = '';
+    registerFooter.style.display = 'block';
+  }
+}
+
+function selectFaculty(email, nameLabel, cardElement) {
+  document.getElementById('identifier').value = email;
+  document.getElementById('selected-faculty-text').textContent = nameLabel;
+
+  // Highlight selected card
+  document.querySelectorAll('.faculty-card').forEach(card => card.classList.remove('selected'));
+  if (cardElement) {
+    cardElement.classList.add('selected');
+  }
+}
+</script>
+{% endblock %}
+

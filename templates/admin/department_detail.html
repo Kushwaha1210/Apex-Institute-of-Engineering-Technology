@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}{{ department }} | Super Admin Control{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Top Navigation & Department Title Header -->
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+    <div>
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+        <span class="badge" style="background: rgba(51, 188, 101, 0.2); color: #5DFFD9; border: 1px solid rgba(51, 188, 101, 0.45); font-size: 0.85rem; padding: 4px 10px; font-weight: 800;">
+          Code: {{ dept_code }}
+        </span>
+        <h1 style="font-size: 2rem; margin: 0;">{{ department }}</h1>
+      </div>
+      <p style="color: var(--text-muted); font-size: 0.92rem; margin: 0;">
+        Department Governance: Oversee assigned HOD Faculty, enrolled candidates, and curriculum examinations.
+      </p>
+    </div>
+    <div style="display: flex; gap: 10px;">
+      <a href="{{ url_for('admin.departments') }}" class="btn btn-secondary">
+        &larr; All 9 Departments
+      </a>
+      <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">
+        Overview Dashboard
+      </a>
+    </div>
+  </div>
+
+  <!-- Two-Column Top Grid: HOD Card (Left) + Department Summary KPIs (Right) -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 20px; margin-bottom: 32px;">
+    
+    <!-- Assigned HOD Faculty Card -->
+    <div class="glass-card" style="padding: 24px 26px; border-left: 4px solid #FBBF24;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+        <span style="font-size: 0.82rem; font-weight: 800; color: #FBBF24; text-transform: uppercase; letter-spacing: 0.5px;">
+          👨‍🏫 Designated Faculty HOD
+        </span>
+        <span class="badge badge-passed" style="font-size: 0.75rem;">
+          Authorized Admin
+        </span>
+      </div>
+
+      {% if hod %}
+        <div style="font-size: 1.4rem; font-weight: 800; color: #ffffff; margin-bottom: 6px;">
+          {{ hod.name }}
+        </div>
+        <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 14px;">
+          Email: <code style="color: #5DFFD9; font-weight: 700; font-size: 0.95rem;">{{ hod.email }}</code>
+        </div>
+        <div style="display: flex; gap: 18px; flex-wrap: wrap; font-size: 0.85rem; color: var(--text-dim); border-top: 1px solid rgba(93, 255, 217, 0.15); padding-top: 12px;">
+          <div>Faculty ID: <strong style="color: #ffffff;">{{ hod.roll_no }}</strong></div>
+          <div>Phone: <strong style="color: #ffffff;">{{ hod.phone or 'N/A' }}</strong></div>
+          <div>Status: <span style="color: #33BC65; font-weight: 700;">Active</span></div>
+        </div>
+      {% else %}
+        <div style="padding: 20px 0; color: var(--text-dim); font-style: italic;">
+          No Faculty HOD currently assigned to this department.
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Department Statistics Card -->
+    <div class="glass-card" style="padding: 24px 26px; border-left: 4px solid #33BC65;">
+      <div style="font-size: 0.82rem; font-weight: 800; color: #5DFFD9; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px;">
+        📊 Department Performance Summary
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; text-align: center;">
+        <div style="background: rgba(18, 220, 239, 0.08); border: 1px solid rgba(18, 220, 239, 0.25); padding: 14px; border-radius: var(--radius-sm);">
+          <div style="font-size: 1.6rem; font-weight: 800; color: #12DCEF;">{{ students|length }}</div>
+          <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">Enrolled Students</div>
+        </div>
+        <div style="background: rgba(51, 188, 101, 0.08); border: 1px solid rgba(51, 188, 101, 0.25); padding: 14px; border-radius: var(--radius-sm);">
+          <div style="font-size: 1.6rem; font-weight: 800; color: #5DFFD9;">{{ exams|length }}</div>
+          <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">Published Exams</div>
+        </div>
+        <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); padding: 14px; border-radius: var(--radius-sm);">
+          <div style="font-size: 1.6rem; font-weight: 800; color: #FBBF24;">{{ attempts|length }}</div>
+          <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">Completed Attempts</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: Enrolled Students in this Department -->
+  <div class="glass-card" style="padding: 24px 28px; margin-bottom: 32px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 12px;">
+      <div>
+        <h2 style="font-size: 1.35rem; font-weight: 800; color: #ffffff; margin-bottom: 4px;">
+          👥 Enrolled Candidates in {{ department }} ({{ students|length }})
+        </h2>
+        <p style="font-size: 0.84rem; color: var(--text-muted); margin: 0;">
+          All candidates registered under branch code <strong>{{ dept_code }}</strong>.
+        </p>
+      </div>
+    </div>
+
+    {% if students %}
+      <div style="overflow-x: auto;">
+        <table class="table" style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="border-bottom: 1px solid rgba(93, 255, 217, 0.2); text-align: left; font-size: 0.82rem; color: var(--text-muted); text-transform: uppercase;">
+              <th style="padding: 12px 14px;">Roll Number</th>
+              <th style="padding: 12px 14px;">Candidate Name</th>
+              <th style="padding: 12px 14px;">Email Address</th>
+              <th style="padding: 12px 14px;">Phone</th>
+              <th style="padding: 12px 14px;">Total Attempts</th>
+              <th style="padding: 12px 14px;">Status</th>
+              <th style="padding: 12px 14px; text-align: right;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in students %}
+              <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.9rem;">
+                <td style="padding: 12px 14px;">
+                  <code style="color: #5DFFD9; font-weight: 800; font-size: 0.92rem;">{{ s.roll_no }}</code>
+                </td>
+                <td style="padding: 12px 14px; font-weight: 700; color: #ffffff;">
+                  {{ s.name }}
+                </td>
+                <td style="padding: 12px 14px; color: var(--text-muted);">
+                  {{ s.email }}
+                </td>
+                <td style="padding: 12px 14px; color: var(--text-dim);">
+                  {{ s.phone or 'N/A' }}
+                </td>
+                <td style="padding: 12px 14px; font-weight: 700; color: #12DCEF;">
+                  {{ s.attempts.filter_by(status='completed').count() }} tests
+                </td>
+                <td style="padding: 12px 14px;">
+                  {% if s.is_active %}
+                    <span class="badge badge-passed">Active</span>
+                  {% else %}
+                    <span class="badge" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4);">Blocked</span>
+                  {% endif %}
+                </td>
+                <td style="padding: 12px 14px; text-align: right;">
+                  <form method="POST" action="{{ url_for('admin.toggle_student_status', student_id=s.id) }}" style="display: inline;">
+                    <button type="submit" class="btn btn-secondary btn-sm" style="font-size: 0.76rem; padding: 4px 10px;">
+                      {% if s.is_active %}Block{% else %}Unblock{% endif %}
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div style="text-align: center; padding: 36px 20px; color: var(--text-dim); background: rgba(0, 0, 0, 0.2); border-radius: var(--radius-sm);">
+        <p style="margin: 0; font-size: 0.95rem;">No candidates currently enrolled under this department.</p>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- SECTION: Department Examinations -->
+  <div class="glass-card" style="padding: 24px 28px; margin-bottom: 40px;">
+    <div style="margin-bottom: 18px;">
+      <h2 style="font-size: 1.35rem; font-weight: 800; color: #ffffff; margin-bottom: 4px;">
+        🎯 Published Curriculum Examinations ({{ exams|length }})
+      </h2>
+      <p style="font-size: 0.84rem; color: var(--text-muted); margin: 0;">
+        Active exams scheduled and managed for {{ department }} candidates.
+      </p>
+    </div>
+
+    {% if exams %}
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
+        {% for ex in exams %}
+          <div style="background: rgba(10, 18, 14, 0.85); border: 1px solid rgba(93, 255, 217, 0.2); border-radius: var(--radius-sm); padding: 18px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <span class="badge" style="background: rgba(51, 188, 101, 0.15); color: #5DFFD9;">{{ ex.subject.code if ex.subject else 'TEST' }}</span>
+              <span class="badge badge-passed">Published</span>
+            </div>
+            <h3 style="font-size: 1.1rem; font-weight: 700; color: #ffffff; margin-bottom: 8px;">{{ ex.title }}</h3>
+            <div style="font-size: 0.82rem; color: var(--text-dim); display: flex; gap: 12px; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 10px;">
+              <span>⏱️ {{ ex.duration_minutes }}m</span>
+              <span>📝 {{ ex.questions|length }} MCQs</span>
+              <span>🎯 Pass: {{ ex.passing_marks }}/{{ ex.total_marks }}</span>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div style="text-align: center; padding: 30px; color: var(--text-dim); background: rgba(0, 0, 0, 0.2); border-radius: var(--radius-sm);">
+        <p style="margin: 0; font-size: 0.95rem;">No exams currently configured for this department.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Server Error | OES Portal{% endblock %}
+
+{% block content %}
+<div class="container container-sm" style="text-align: center; padding: 60px 20px;">
+  <div class="glass-card">
+    <div style="font-size: 3.5rem; margin-bottom: 8px;">⚙️</div>
+    <h1 style="font-size: 2.2rem; margin-bottom: 8px;">500 - Internal Server Error</h1>
+    <p style="color: var(--text-muted); font-size: 1rem; margin-bottom: 24px;">
+      An unexpected error occurred while processing your examination request.
+    </p>
+    <a href="{{ url_for('main.index') }}" class="btn btn-primary">Return to Homepage &rarr;</a>
+  </div>
+</div>
+{% endblock %}

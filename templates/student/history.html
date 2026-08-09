@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}My Scorecards & Certificates | OES Portal{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div style="margin-bottom: 24px;">
+    <h1 style="font-size: 2rem;" data-flip-text="My Scorecards & Certificates">My Scorecards & Certificates</h1>
+    <p style="color: var(--text-muted); font-size: 0.95rem;">
+      Archive of all completed examinations, score percentages, and downloadable achievement certificates.
+    </p>
+  </div>
+
+  <div class="glass-card" style="padding: 0; overflow: hidden;">
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Exam Title</th>
+            <th>Date Completed</th>
+            <th>Score</th>
+            <th>Percentage</th>
+            <th>Grade</th>
+            <th>Status</th>
+            <th>Certificate</th>
+            <th style="text-align: right;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for att in attempts %}
+            <tr>
+              <td>
+                <div style="font-weight: 700; color: #ffffff;">{{ att.exam.title if att.exam else 'Unknown Exam' }}</div>
+                <div style="font-size: 0.75rem; color: var(--text-dim);">{{ att.exam.subject.name if att.exam and att.exam.subject else '' }}</div>
+              </td>
+              <td>
+                <span style="font-size: 0.85rem;">{{ att.submitted_at.strftime('%b %d, %Y %I:%M %p') if att.submitted_at else 'Incomplete' }}</span>
+              </td>
+              <td>
+                <strong>{{ att.score }} / {{ att.total_marks }}</strong>
+              </td>
+              <td>
+                <strong style="color: #818cf8;">{{ att.percentage }}%</strong>
+              </td>
+              <td>
+                <span class="badge badge-medium">{{ att.grade }}</span>
+              </td>
+              <td>
+                {% if att.is_passed %}
+                  <span class="badge badge-passed">Passed</span>
+                {% else %}
+                  <span class="badge badge-failed">Failed</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if att.certificate_id %}
+                  <a href="{{ url_for('student.download_certificate', attempt_id=att.id) }}" class="btn btn-gold btn-sm">
+                    📜 Certificate
+                  </a>
+                {% else %}
+                  <span style="color: var(--text-dim); font-size: 0.8rem;">-</span>
+                {% endif %}
+              </td>
+              <td style="text-align: right;">
+                <a href="{{ url_for('student.view_result', attempt_id=att.id) }}" class="btn btn-secondary btn-sm">
+                  Review Answers
+                </a>
+              </td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="8" style="text-align: center; padding: 36px; color: var(--text-dim);">
+                You have not completed any exams yet. Visit the <a href="{{ url_for('student.dashboard') }}" style="color: #818cf8;">Exam Lobby</a> to begin.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Staggered Performance Intelligence Matrix (GSAP Parity) -->
+  <section class="staggered-grid-wrapper" data-staggered-grid style="padding-top: 40px; padding-bottom: 20px;">
+    <div style="text-align: center; margin-bottom: 16px;">
+      <div class="step-pill">🏆 Academic Honors Matrix</div>
+    </div>
+
+    <!-- Kinetic Center Split Typography -->
+    <div class="staggered-center-text" data-text="VERIFIED HONORS" style="font-size: clamp(2rem, 5vw, 3.8rem);">
+      VERIFIED HONORS
+    </div>
+
+    <div class="staggered-grid-full">
+      <div class="staggered-grid-item" data-col="0">
+        <span style="font-size: 1.8rem;">📋</span>
+        <div style="font-size: 0.85rem; font-weight: 700; color: #ffffff;">{{ attempts|length }} Attempts</div>
+        <div style="font-size: 0.72rem; color: var(--text-muted);">Recorded History</div>
+      </div>
+
+      <div class="staggered-grid-item" data-col="1">
+        <span style="font-size: 1.8rem;">⏱️</span>
+        <div style="font-size: 0.85rem; font-weight: 700; color: #ffffff;">Auto Synced</div>
+        <div style="font-size: 0.72rem; color: var(--text-muted);">Proctored Time</div>
+      </div>
+
+      <div class="staggered-grid-item" data-col="2">
+        <span style="font-size: 1.8rem;">🎯</span>
+        <div style="font-size: 0.85rem; font-weight: 700; color: #ffffff;">Grade Pass</div>
+        <div style="font-size: 0.72rem; color: var(--text-muted);">Threshold Met</div>
+      </div>
+
+      <!-- Center Expanding Bento Container -->
+      <div class="bento-container" data-col="3">
+        <div class="bento-item active">
+          <div class="bento-active-content">
+            <div>
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                <span class="badge" style="background: rgba(51, 188, 101, 0.2); color: #5DFFD9; border: 1px solid rgba(51, 188, 101, 0.4);">Verified Honors</span>
+                <span style="font-size: 1.5rem;">📜</span>
+              </div>
+              <h3 style="font-size: 1.15rem; font-weight: 800; color: #ffffff; margin-bottom: 4px;">Achievement Certificates</h3>
+              <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.45;">
+                Every passed examination generates a high-resolution double-bordered certificate complete with institutional gold seal and digital signatures.
+              </p>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(93, 255, 217, 0.15); padding-top: 8px;">
+              <span style="font-size: 0.75rem; color: #5DFFD9; font-weight: 700;">Official Document</span>
+              <span style="font-size: 0.75rem; color: #12DCEF;">Print-Ready</span>
+            </div>
+          </div>
+          <div class="bento-inactive-content">
+            <span style="font-size: 1.8rem;">📜</span>
+            <span style="font-size: 0.75rem; font-weight: 700; color: #5DFFD9; text-transform: uppercase;">Certificates</span>
+          </div>
+        </div>
+
+        <div class="bento-item inactive">
+          <div class="bento-active-content">
+            <div>
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                <span class="badge" style="background: rgba(18, 220, 239, 0.2); color: #12DCEF; border: 1px solid rgba(18, 220, 239, 0.4);">Review Engine</span>
+                <span style="font-size: 1.5rem;">🔍</span>
+              </div>
+              <h3 style="font-size: 1.15rem; font-weight: 800; color: #ffffff; margin-bottom: 4px;">Step-by-Step Answer Key</h3>
+              <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.45;">
+                Detailed question reviews revealing correct options, full explanations, and marks breakdowns.
+              </p>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(93, 255, 217, 0.15); padding-top: 8px;">
+              <span style="font-size: 0.75rem; color: #12DCEF; font-weight: 700;">Deep Feedback</span>
+              <span style="font-size: 0.75rem; color: var(--text-dim);">Instant Analysis</span>
+            </div>
+          </div>
+          <div class="bento-inactive-content">
+            <span style="font-size: 1.8rem;">🔍</span>
+            <span style="font-size: 0.75rem; font-weight: 700; color: #12DCEF; text-transform: uppercase;">Review</span>
+          </div>
+        </div>
+
+        <div class="bento-item inactive">
+          <div class="bento-active-content">
+            <div>
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                <span class="badge badge-passed">Integrity Log</span>
+                <span style="font-size: 1.5rem;">🛡️</span>
+              </div>
+              <h3 style="font-size: 1.15rem; font-weight: 800; color: #ffffff; margin-bottom: 4px;">Clean Proctor Compliance</h3>
+              <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.45;">
+                Verified proctoring session ensuring high-trust evaluation standards and academic credibility.
+              </p>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(93, 255, 217, 0.15); padding-top: 8px;">
+              <span style="font-size: 0.75rem; color: #5DFFD9; font-weight: 700;">Zero Flags</span>
+              <span style="font-size: 0.75rem; color: var(--text-dim);">100% Honest</span>
+            </div>
+          </div>
+          <div class="bento-inactive-content">
+            <span style="font-size: 1.8rem;">🛡️</span>
+            <span style="font-size: 0.75rem; font-weight: 700; color: #5DFFD9; text-transform: uppercase;">Integrity</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="staggered-grid-item" data-col="6">
+        <span style="font-size: 1.8rem;">🌟</span>
+        <div style="font-size: 0.85rem; font-weight: 700; color: #ffffff;">Merit Rank</div>
+        <div style="font-size: 0.72rem; color: var(--text-muted);">Verified Scholar</div>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/staggered_bento_grid.js') }}"></script>
+{% endblock %}

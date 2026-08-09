@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Official Certificate of Achievement | {{ student.name }}{% endblock %}
+
+{% block content %}
+<div class="certificate-wrapper">
+  
+  <!-- Print / Action Toolbar -->
+  <div class="no-print" style="margin-bottom: 24px; display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;">
+    <button type="button" class="btn btn-gold btn-lg" onclick="window.print();">
+      🖨️ Download / Print Certificate (PDF)
+    </button>
+    <a href="{{ url_for('student.view_result', attempt_id=attempt.id) }}" class="btn btn-secondary btn-lg">
+      &larr; Back to Scorecard
+    </a>
+  </div>
+
+  <!-- The High-Resolution Certificate Paper -->
+  <div class="certificate-paper">
+    <!-- Corner Ornaments -->
+    <div class="cert-corner-decor cert-tl"></div>
+    <div class="cert-corner-decor cert-tr"></div>
+    <div class="cert-corner-decor cert-bl"></div>
+    <div class="cert-corner-decor cert-br"></div>
+
+    <!-- Institute Crest -->
+    <div class="cert-crest">🏛️</div>
+    <div class="cert-inst-title">{{ INSTITUTE_NAME }}</div>
+    <div class="cert-inst-sub">{{ INSTITUTE_SUBTITLE }} • {{ INSTITUTE_CODE }}</div>
+
+    <div class="cert-main-heading">
+      Certificate of Academic Excellence
+    </div>
+
+    <div class="cert-presented-text">
+      This is to certify that candidate
+    </div>
+
+    <div class="cert-candidate-name">
+      {{ student.name }}
+    </div>
+
+    <div style="font-size: 1.1rem; color: #475569; margin-bottom: 20px;">
+      College Roll No: <strong style="color: #1e1b4b;">{{ student.roll_no }}</strong> • Department of <strong style="color: #1e1b4b;">{{ student.department }}</strong>
+    </div>
+
+    <div class="cert-statement">
+      has successfully completed the formal evaluation for <strong>{{ exam.title }}</strong> under the <strong>{{ exam.subject.name }}</strong> domain on <strong>{{ issue_date }}</strong>, demonstrating outstanding proficiency with a final score of <strong>{{ attempt.percentage }}%</strong> (<strong>Grade {{ attempt.grade }}</strong>).
+    </div>
+
+    <!-- Footer Grid: Signature, Gold Seal, Verification Stamp -->
+    <div class="cert-footer-grid">
+      <div style="text-align: center;">
+        <div style="font-family: 'Cinzel', serif; font-size: 1.2rem; font-weight: 700; color: #1e1b4b; margin-bottom: 4px;">Prof. R. Sharma</div>
+        <div class="cert-sig-line"></div>
+        <div class="cert-sig-title">Head of Examination Cell</div>
+      </div>
+
+      <div class="cert-gold-seal">
+        <span>SEAL</span>
+        <span style="font-size: 0.65rem;">VERIFIED</span>
+      </div>
+
+      <div style="text-align: center;">
+        <div style="font-family: 'Cinzel', serif; font-size: 1.2rem; font-weight: 700; color: #1e1b4b; margin-bottom: 4px;">Dr. S. K. Mehta</div>
+        <div class="cert-sig-line"></div>
+        <div class="cert-sig-title">Dean of Academic Affairs</div>
+      </div>
+    </div>
+
+    <!-- Verification Code Footer -->
+    <div class="cert-code">
+      Certificate ID: <strong>{{ attempt.certificate_id }}</strong> • Secure Digital Verification
+    </div>
+  </div>
+</div>
+{% endblock %}

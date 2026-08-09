@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block title %}Live Exam: {{ exam.title }} | OES Portal{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="padding: 0 16px 40px 16px;">
+  <!-- Sticky Exam Top Bar -->
+  <div class="exam-top-bar">
+    <div>
+      <h2 style="font-size: 1.25rem; font-weight: 800; color: #ffffff; margin-bottom: 4px;">{{ exam.title }}</h2>
+      <div style="font-size: 0.84rem; color: var(--text-dim);">
+        Candidate: <strong style="color: #5DFFD9;">{{ current_user.name }}</strong> (<code>{{ current_user.roll_no }}</code>) &bull; Negative Penalty: <strong style="color: #f87171;">-{{ exam.negative_marks }}</strong>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+      <!-- Live Countdown Timer -->
+      <div id="exam-timer-display" class="exam-timer" data-seconds="{{ remaining_seconds }}">
+        --:--
+      </div>
+
+      <button type="button" id="toggle-fullscreen-btn" class="btn btn-secondary btn-sm" title="Toggle Fullscreen">
+        ⛶ Fullscreen
+      </button>
+
+      <button type="button" class="btn btn-danger btn-sm" onclick="if(confirm('Are you sure you want to finish and submit your exam?')) document.getElementById('exam-form').submit();">
+        🏁 Final Submit
+      </button>
+    </div>
+  </div>
+
+  <form id="exam-form" method="POST" action="{{ url_for('student.submit_exam', exam_id=exam.id) }}">
+    <input type="hidden" id="violations_count" name="violations_count" value="0">
+    <input type="hidden" id="student_snapshot" name="student_snapshot" value="">
+
+    <!-- Exam Screen Layout (Left: Single Question View with Prev/Next, Right: Palette) -->
+    <div class="exam-screen-layout">
+      
+      <!-- Main Question Step Container -->
+      <div style="min-width: 0;">
+        <!-- Top Question Step Progress Header -->
+        <div class="glass-card" style="padding: 16px 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+          <div>
+            <span style="font-size: 0.85rem; color: var(--text-dim);">Exam Progress:</span>
+            <strong style="color: #5DFFD9; font-size: 1.05rem; margin-left: 6px;">
+              Question <span id="current-q-index">1</span> of {{ questions|length }}
+            </strong>
+          </div>
+
+          <!-- Progress Track Bar -->
+          <div style="flex: 1; max-width: 340px; height: 10px; background: rgba(255,255,255,0.06); border-radius: var(--radius-pill); overflow: hidden; border: 1px solid var(--border-glass);">
+            <div id="exam-progress-fill" style="height: 100%; width: {{ (1 / (questions|length or 1) * 100)|round }}%; background: linear-gradient(90deg, #33BC65, #12DCEF); box-shadow: 0 0 10px rgba(51,188,101,0.8); transition: width 0.3s ease;"></div>
+          </div>
+        </div>
+
+        <!-- Individual Question Cards (Only active question visible) -->
+        {% for q in questions %}
+          <div 
+            id="question-card-{{ q.id }}" 
+            class="question-step-card" 
+            data-index="{{ loop.index0 }}"
+            data-qid="{{ q.id }}"
+            style="{% if not loop.first %}display: none;{% endif %}"
+          >
+            <div class="question-header">
+              <div class="question-number">Question {{ loop.index }} of {{ questions|length }}</div>
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <span class="badge {% if q.difficulty == 'Easy' %}badge-easy{% elif q.difficulty == 'Hard' %}badge-hard{% else %}badge-medium{% endif %}">
+                  {{ q.difficulty }}
+                </span>
+                <span style="font-size: 0.82rem; color: var(--text-dim); font-weight: 600;">Marks: +{{ q.marks }}</span>
+              </div>
+            </div>
+
+            <div class="question-text">
+              {{ q.question_text }}
+            </div>
+
+            <!-- Option Choices (A, B, C, D) -->
+            <div class="options-grid">
+              <label class="option-item" for="opt_{{ q.id }}_A">
+                <input type="radio" id="opt_{{ q.id }}_A" name="question_{{ q.id }}" value="A" class="option-radio" data-qid="{{ q.id }}" style="position: absolute; opacity: 0; pointer-events: none;">
+                <div class="option-letter">A</div>
+                <div class="option-label">{{ q.option_a }}</div>
+              </label>
+
+              <label class="option-item" for="opt_{{ q.id }}_B">
+                <input type="radio" id="opt_{{ q.id }}_B" name="question_{{ q.id }}" value="B" class="option-radio" data-qid="{{ q.id }}" style="position: absolute; opacity: 0; pointer-events: none;">
+                <div class="option-letter">B</div>
+                <div class="option-label">{{ q.option_b }}</div>
+              </label>
+
+              <label class="option-item" for="opt_{{ q.id }}_C">
+                <input type="radio" id="opt_{{ q.id }}_C" name="question_{{ q.id }}" value="C" class="option-radio" data-qid="{{ q.id }}" style="position: absolute; opacity: 0; pointer-events: none;">
+                <div class="option-letter">C</div>
+                <div class="option-label">{{ q.option_c }}</div>
+              </label>
+
+              <label class="option-item" for="opt_{{ q.id }}_D">
+                <input type="radio" id="opt_{{ q.id }}_D" name="question_{{ q.id }}" value="D" class="option-radio" data-qid="{{ q.id }}" style="position: absolute; opacity: 0; pointer-events: none;">
+                <div class="option-letter">D</div>
+                <div class="option-label">{{ q.option_d }}</div>
+              </label>
+            </div>
+
+            <!-- Question Action Controls (Clear, Mark Review, Prev, Next) -->
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(93, 255, 217, 0.16); padding-top: 20px; margin-top: 10px; flex-wrap: wrap; gap: 14px;">
+              <div style="display: flex; gap: 10px;">
+                <button type="button" class="btn btn-secondary btn-sm btn-clear-selection" data-qid="{{ q.id }}">
+                  🧹 Clear Selection
+                </button>
+
+                <button type="button" class="btn btn-secondary btn-sm btn-flag-review" data-qid="{{ q.id }}">
+                  ⭐ Mark for Review
+                </button>
+              </div>
+
+              <!-- Next / Previous Navigation Buttons -->
+              <div style="display: flex; gap: 12px;">
+                <button 
+                  type="button" 
+                  class="btn btn-secondary btn-prev-question" 
+                  data-target-index="{{ loop.index0 - 1 }}"
+                  {% if loop.first %}disabled style="opacity: 0.4; cursor: not-allowed;"{% endif %}
+                >
+                  &larr; Previous
+                </button>
+
+                {% if not loop.last %}
+                  <button 
+                    type="button" 
+                    class="btn btn-primary btn-next-question" 
+                    data-target-index="{{ loop.index0 + 1 }}"
+                  >
+                    Save &amp; Next &rarr;
+                  </button>
+                {% else %}
+                  <button 
+                    type="button" 
+                    class="btn btn-primary" 
+                    style="background: linear-gradient(135deg, #33BC65 0%, #12DCEF 100%); color: #070707; font-weight: 800; box-shadow: 0 0 20px rgba(51, 188, 101, 0.7);"
+                    onclick="if(confirm('Submit your final exam responses now?')) document.getElementById('exam-form').submit();"
+                  >
+                    🏁 Finish &amp; Submit &rarr;
+                  </button>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- Right Column: Question Palette & Proctoring Status -->
+      <div>
+        <div class="palette-card" style="position: sticky; top: 110px;">
+          <h3 style="font-size: 1.1rem; font-weight: 800; color: #ffffff; margin-bottom: 14px;">Question Palette</h3>
+
+          <!-- Color Legend -->
+          <div class="palette-legend" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.75rem; color: var(--text-dim); margin-bottom: 18px;">
+            <div style="display: flex; align-items: center; gap: 6px;"><span class="palette-btn answered" style="width: 14px; height: 14px; display: inline-block;"></span> Answered</div>
+            <div style="display: flex; align-items: center; gap: 6px;"><span class="palette-btn unanswered" style="width: 14px; height: 14px; display: inline-block;"></span> Unanswered</div>
+            <div style="display: flex; align-items: center; gap: 6px;"><span class="palette-btn flagged" style="width: 14px; height: 14px; display: inline-block;"></span> Marked Review</div>
+            <div style="display: flex; align-items: center; gap: 6px;"><span class="palette-btn not-visited" style="width: 14px; height: 14px; display: inline-block;"></span> Not Visited</div>
+          </div>
+
+          <!-- Circular Palette Grid (Clicking jumps directly to that question) -->
+          <div class="palette-grid">
+            {% for q in questions %}
+              <button 
+                type="button"
+                id="palette-btn-{{ q.id }}" 
+                class="palette-btn not-visited {% if loop.first %}current-active{% endif %}" 
+                data-qid="{{ q.id }}"
+                data-index="{{ loop.index0 }}"
+              >
+                {{ loop.index }}
+              </button>
+            {% endfor %}
+          </div>
+
+          <!-- Live Proctoring Status Box -->
+          <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid rgba(93, 255, 217, 0.16); font-size: 0.8rem; color: var(--text-muted);">
+            <div style="font-weight: 800; color: #5DFFD9; margin-bottom: 6px;">🛡️ Anti-Cheating Active</div>
+            <div>• Tab switching monitored</div>
+            <div>• Fullscreen breaches logged</div>
+            <div>• Right-click context disabled</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </form>
+</div>
+
+<!-- Tab-Switch Warning Modal -->
+<div id="tab-warning-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.85); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(12px);">
+  <div class="glass-card" style="width: 90%; max-width: 500px; text-align: center; border: 2px solid var(--danger); background: #0f172a;">
+    <div style="font-size: 3rem; margin-bottom: 12px;">⚠️</div>
+    <h3 style="font-size: 1.4rem; color: #f87171; margin-bottom: 8px;">Focus Loss &amp; Tab-Switching Warning!</h3>
+    <p style="color: var(--text-main); font-size: 0.95rem; margin-bottom: 16px;">
+      You have navigated away from the active examination screen.
+    </p>
+    <div style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); padding: 10px; border-radius: var(--radius-sm); font-size: 0.9rem; font-weight: 700; color: #f87171; margin-bottom: 20px;">
+      Warning Violation: <span id="warning-count-display">1</span> of 3 Recorded
+    </div>
+    <p style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 24px;">
+      Note: Reaching 3 violations will automatically terminate and submit your examination.
+    </p>
+    <button type="button" id="dismiss-warning-btn" class="btn btn-danger" style="width: 100%;">
+      I Understand, Resume My Exam
+    </button>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/exam.js') }}"></script>
+{% endblock %}

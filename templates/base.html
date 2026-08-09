@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Online Examination System{% endblock %} | {{ INSTITUTE_NAME }}</title>
+  
+  <!-- Fonts: Inter, Outfit, Cinzel -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800;900&family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+  <!-- WebGL 3D Particle Background Canvas -->
+  <canvas id="webgl-canvas"></canvas>
+
+  <div class="app-shell">
+    {% if current_user.is_authenticated %}
+      <!-- Left Sidebar (Matching Image 1 Design) -->
+      <aside class="app-sidebar">
+        <div>
+          <!-- Brand Logo -->
+          <a href="{{ url_for('main.index') }}" class="sidebar-brand">
+            <div class="brand-icon-logo">🏛️</div>
+            <div class="brand-title">OES <span>PORTAL</span></div>
+          </a>
+
+          <!-- Navigation Links with Luminous Glowing Active Pill -->
+          <ul class="sidebar-nav">
+            {% if current_user.is_admin %}
+              <li>
+                <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+                  <div class="nav-icon-pill">🏠</div>
+                  <span>Dashboard</span>
+                </a>
+              </li>
+              {% if current_user.is_superadmin %}
+                <li>
+                  <a href="{{ url_for('admin.departments') }}" class="sidebar-link {% if request.endpoint in ['admin.departments', 'admin.department_detail'] %}active{% endif %}">
+                    <div class="nav-icon-pill">🏛️</div>
+                    <span>Departments &amp; HODs</span>
+                  </a>
+                </li>
+              {% endif %}
+              <li>
+                <a href="{{ url_for('admin.exams') }}" class="sidebar-link {% if request.endpoint == 'admin.exams' %}active{% endif %}">
+                  <div class="nav-icon-pill">🎯</div>
+                  <span>Examinations</span>
+                </a>
+              </li>
+              {% if not current_user.is_superadmin %}
+                <li>
+                  <a href="{{ url_for('admin.questions') }}" class="sidebar-link {% if request.endpoint == 'admin.questions' %}active{% endif %}">
+                    <div class="nav-icon-pill">📝</div>
+                    <span>Question Bank</span>
+                  </a>
+                </li>
+              {% endif %}
+              <li>
+                <a href="{{ url_for('admin.students') }}" class="sidebar-link {% if request.endpoint == 'admin.students' %}active{% endif %}">
+                  <div class="nav-icon-pill">👥</div>
+                  <span>Students</span>
+                </a>
+              </li>
+              <li>
+                <a href="{{ url_for('admin.results') }}" class="sidebar-link {% if request.endpoint == 'admin.results' %}active{% endif %}">
+                  <div class="nav-icon-pill">📊</div>
+                  <span>Merit List</span>
+                </a>
+              </li>
+              <li>
+                <a href="{{ url_for('admin.announcements') }}" class="sidebar-link {% if request.endpoint == 'admin.announcements' %}active{% endif %}">
+                  <div class="nav-icon-pill">📢</div>
+                  <span style="flex: 1;">Announcements</span>
+                  {% if unread_notifications_count %}
+                    <span class="sidebar-badge-count">{{ unread_notifications_count }}</span>
+                  {% endif %}
+                </a>
+              </li>
+            {% else %}
+              <li>
+                <a href="{{ url_for('student.dashboard') }}" class="sidebar-link {% if request.endpoint == 'student.dashboard' %}active{% endif %}">
+                  <div class="nav-icon-pill">🏠</div>
+                  <span>Dashboard</span>
+                </a>
+              </li>
+              <li>
+                <a href="{{ url_for('student.announcements') }}" class="sidebar-link {% if request.endpoint == 'student.announcements' %}active{% endif %}">
+                  <div class="nav-icon-pill">📢</div>
+                  <span style="flex: 1;">Announcements</span>
+                  {% if unread_notifications_count %}
+                    <span class="sidebar-badge-count">{{ unread_notifications_count }}</span>
+                  {% endif %}
+                </a>
+              </li>
+              <li>
+                <a href="{{ url_for('student.history') }}" class="sidebar-link {% if request.endpoint == 'student.history' %}active{% endif %}">
+                  <div class="nav-icon-pill">📜</div>
+                  <span>My Scorecards</span>
+                </a>
+              </li>
+              <li>
+                <a href="{{ url_for('auth.profile') }}" class="sidebar-link {% if request.endpoint == 'auth.profile' %}active{% endif %}">
+                  <div class="nav-icon-pill">👤</div>
+                  <span>My Profile</span>
+                </a>
+              </li>
+            {% endif %}
+          </ul>
+        </div>
+
+        <!-- Sidebar Footer -->
+        <div class="sidebar-footer">
+          <a href="{{ url_for('auth.profile') }}" class="sidebar-link">
+            <div class="nav-icon-pill">⚙️</div>
+            <span>Settings</span>
+          </a>
+          <a href="{{ url_for('auth.logout') }}" class="sidebar-link" style="color: #f87171;">
+            <div class="nav-icon-pill" style="color: #f87171;">🚪</div>
+            <span>Log out</span>
+          </a>
+        </div>
+      </aside>
+    {% endif %}
+
+    <!-- Main Content Area -->
+    <div class="app-main">
+      <!-- Topbar Header (Breadcrumbs, Date, Notifications, Avatar) -->
+      <header class="app-topbar">
+        <div class="breadcrumb-box">
+          <a href="{{ url_for('main.index') }}">🏛️ Home</a>
+          <span class="separator">/</span>
+          {% if current_user.is_authenticated %}
+            <span class="current">{% if current_user.is_admin %}Faculty Portal{% else %}Dashboard{% endif %}</span>
+          {% else %}
+            <span class="current">Examination Portal</span>
+          {% endif %}
+          <span class="separator">/</span>
+          <div class="date-pill">
+            <span>📅 Today</span>
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          {% if current_user.is_authenticated %}
+            <!-- Bell Notification Button with Dropdown -->
+            <div class="notification-wrapper" style="position: relative;">
+              <button type="button" class="btn-icon-round notification-bell-btn" onclick="toggleNotificationDropdown()" title="Notifications & Announcements">
+                <span>🔔</span>
+                {% if unread_notifications_count %}
+                  <span class="bell-unread-dot">{{ unread_notifications_count }}</span>
+                {% endif %}
+              </button>
+
+              <!-- Glassmorphic Notification Dropdown Menu -->
+              <div class="notification-dropdown" id="notificationDropdown">
+                <div class="notification-dropdown-header">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 1.1rem;">🔔</span>
+                    <span style="font-weight: 700; color: #ffffff; font-size: 0.95rem;">Notifications</span>
+                    {% if unread_notifications_count %}
+                      <span class="badge" style="font-size: 0.7rem; padding: 2px 8px; background: rgba(255, 109, 41, 0.25); color: #ff9d6e; border: 1px solid rgba(255, 109, 41, 0.4);">{{ unread_notifications_count }} New</span>
+                    {% endif %}
+                  </div>
+                  <button type="button" class="btn-v2-cancel" onclick="markAllNotificationsRead(event)" style="font-size: 0.72rem; padding: 3px 8px;">
+                    Mark all read
+                  </button>
+                </div>
+
+                <div class="notification-dropdown-body">
+                  {% if recent_notifications %}
+                    {% for n in recent_notifications %}
+                      <div class="notification-item {% if not n.is_read %}unread{% endif %}">
+                        <div class="notification-item-icon">
+                          {% if n.category == 'registration' %}🎓{% elif n.category == 'exam' %}📝{% elif n.priority == 'urgent' %}🚨{% else %}📢{% endif %}
+                        </div>
+                        <div class="notification-item-content">
+                          <div class="notification-item-title">{{ n.title }}</div>
+                          <div class="notification-item-text">{{ n.message }}</div>
+                          <div class="notification-item-meta">
+                            <span>{{ n.time_ago }}</span>
+                            <span>•</span>
+                            <span>{{ n.sender_name }}</span>
+                          </div>
+                        </div>
+                      </div>
+                    {% endfor %}
+                  {% else %}
+                    <div style="text-align: center; padding: 28px 16px; color: var(--text-dim);">
+                      <div style="font-size: 1.8rem; margin-bottom: 6px;">📭</div>
+                      <p style="font-size: 0.85rem;">No new notifications</p>
+                    </div>
+                  {% endif %}
+                </div>
+
+                <div class="notification-dropdown-footer">
+                  {% if current_user.is_admin %}
+                    <a href="{{ url_for('admin.announcements') }}" style="color: #FF6D29; text-decoration: none; font-size: 0.82rem; font-weight: 600; display: block; text-align: center;">
+                      Broadcast & Manage Announcements &rarr;
+                    </a>
+                  {% else %}
+                    <a href="{{ url_for('student.announcements') }}" style="color: #8EB69B; text-decoration: none; font-size: 0.82rem; font-weight: 600; display: block; text-align: center;">
+                      View All Announcements & Notices &rarr;
+                    </a>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <div class="user-avatar-group">
+              <div class="avatar-circle">{{ current_user.name[:1] }}</div>
+              <span class="user-avatar-name">{{ current_user.name }}</span>
+            </div>
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-secondary btn-sm">Log out</a>
+          {% else %}
+            <a href="{{ url_for('auth.login') }}" class="btn btn-secondary btn-sm">Sign In</a>
+            <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-sm">Create Account</a>
+          {% endif %}
+        </div>
+      </header>
+
+      <!-- Floating Glassmorphic Toast Notifications with Auto-Dismiss -->
+      <div class="flash-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category if category != 'error' else 'danger' }}">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <span class="alert-icon">
+                    {% if category == 'success' %}✨{% elif category in ['danger', 'error'] %}⚠️{% elif category == 'warning' %}🔔{% else %}⚡{% endif %}
+                  </span>
+                  <span class="alert-message">{{ message }}</span>
+                </div>
+                <button type="button" class="alert-close" onclick="dismissAlert(this.closest('.alert'))">&times;</button>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+      </div>
+
+      <!-- Main Body Block -->
+      <main class="viewport-content">
+        {% block content %}{% endblock %}
+      </main>
+
+      <!-- Global Footer -->
+      <footer style="border-top: 1px solid var(--border-glass); padding: 24px 36px; font-size: 0.82rem; color: var(--text-dim); text-align: center;">
+        <p>{{ INSTITUTE_NAME }} — {{ INSTITUTE_SUBTITLE }}</p>
+        <p>Online Examination & Digital Certification Engine &copy; 2026. All rights reserved.</p>
+      </footer>
+    </div>
+  </div>
+
+  <!-- WebGL 3D GPU Constellation & Scroll Dissolve Edge Engine -->
+  <script src="{{ url_for('static', filename='js/scroll_dissolve_shader.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/webgl_bg.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/scrollytelling.js') }}"></script>
+  
+  <!-- Auto-Dismiss Toast Notifications & Notification Dropdown Engine -->
+  <script>
+  function dismissAlert(el) {
+    if (!el || el.classList.contains("dismissing")) return;
+    el.classList.add("dismissing");
+    el.style.animation = "toastSlideOut 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards";
+    setTimeout(() => {
+      if (el.parentNode) el.remove();
+    }, 350);
+  }
+
+  function toggleNotificationDropdown() {
+    const dropdown = document.getElementById("notificationDropdown");
+    if (dropdown) {
+      dropdown.classList.toggle("show");
+    }
+  }
+
+  function markAllNotificationsRead(e) {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    fetch("{{ url_for('admin.mark_notifications_read') }}", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" }
+    })
+    .then(r => r.json())
+    .then(d => {
+      if (d.status === "success") {
+        document.querySelectorAll(".bell-unread-dot, .sidebar-badge-count").forEach(el => el.remove());
+        document.querySelectorAll(".notification-item.unread").forEach(el => el.classList.remove("unread"));
+        const badge = document.querySelector("#notificationDropdown .badge");
+        if (badge) badge.remove();
+      }
+    })
+    .catch(() => {});
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const alerts = document.querySelectorAll(".flash-container .alert");
+    alerts.forEach((alert, idx) => {
+      // Auto dismiss after 3.8 seconds (+ small stagger if multiple)
+      setTimeout(() => {
+        dismissAlert(alert);
+      }, 3800 + (idx * 300));
+    });
+
+    // Close notification dropdown when clicking outside
+    document.addEventListener("click", function (e) {
+      const wrapper = document.querySelector(".notification-wrapper");
+      const dropdown = document.getElementById("notificationDropdown");
+      if (dropdown && wrapper && !wrapper.contains(e.target)) {
+        dropdown.classList.remove("show");
+      }
+    });
+
+    // Universal Delegated Password Eye Visibility Toggle (Works across all forms & modals)
+    document.addEventListener("click", function (e) {
+      const btn = e.target.closest(".password-toggle-btn");
+      if (!btn) return;
+      e.preventDefault();
+      e.stopPropagation();
+
+      const wrapper = btn.closest(".password-input-wrapper");
+      if (!wrapper) return;
+      const input = wrapper.querySelector("input");
+      const icon = btn.querySelector(".eye-icon") || btn;
+
+      if (input) {
+        if (input.type === "password") {
+          input.type = "text";
+          icon.innerText = "🙈";
+          btn.setAttribute("title", "Hide Password");
+          btn.style.color = "#8EB69B";
+        } else {
+          input.type = "password";
+          icon.innerText = "👁️";
+          btn.setAttribute("title", "Show Password");
+          btn.style.color = "";
+        }
+      }
+    });
+  });
+  </script>
+
+  <script src="{{ url_for('static', filename='js/flip_text.js') }}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

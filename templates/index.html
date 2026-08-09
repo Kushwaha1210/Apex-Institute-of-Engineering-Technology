@@ -1,0 +1,332 @@
+{% extends "base.html" %}
+
+{% block title %}Next-Gen Online Examination System & Certification Portal{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div style="max-width: 780px;">
+      <div class="hero-badge" style="margin-bottom: 20px;">
+        <span>⚡ 2026 Academic Edition</span>
+        <span>•</span>
+        <span data-flip-fade data-words='["ONLINE ASSESSMENTS", "ANTI-CHEAT PROCTORING", "AUTO GRADING", "DIGITAL CERTIFICATION", "ACADEMIC SENTINEL"]' style="color: #5DFFD9; font-weight: 700; min-width: 220px; text-align: left;">
+          ONLINE ASSESSMENTS
+        </span>
+      </div>
+
+      <h1 class="hero-title" data-flip-text="The Future of Academic Examination & Verified Certification." style="line-height: 1.15;">
+        The Future of <span class="hero-gradient-text">Academic Examination</span> & Verified Certification.
+      </h1>
+
+      <p class="hero-subtitle">
+        A seamless, high-integrity online examination system featuring real-time anti-cheating controls, live countdown timers, interactive question palettes, and instantly downloadable verified achievement certificates.
+      </p>
+
+      <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 48px;">
+        {% if current_user.is_authenticated %}
+          {% if current_user.is_admin %}
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-primary btn-lg">Access Faculty Dashboard &rarr;</a>
+          {% else %}
+            <a href="{{ url_for('student.dashboard') }}" class="btn btn-primary btn-lg">Enter Examination Lobby &rarr;</a>
+          {% endif %}
+        {% else %}
+          <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">🎓 Create Student Account</a>
+          <a href="{{ url_for('auth.login') }}" class="btn btn-secondary btn-lg">Candidate / Faculty Sign In</a>
+        {% endif %}
+      </div>
+
+      <!-- Live KPI Badges -->
+      <div style="display: flex; gap: 24px; flex-wrap: wrap; border-top: 1px solid var(--border-glass); padding-top: 24px;">
+        <div>
+          <div style="font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800; color: #818cf8;">{{ total_students }}+</div>
+          <div style="font-size: 0.85rem; color: var(--text-dim);">Enrolled Students</div>
+        </div>
+        <div>
+          <div style="font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800; color: #06b6d4;">{{ total_questions }}+</div>
+          <div style="font-size: 0.85rem; color: var(--text-dim);">Verified MCQs</div>
+        </div>
+        <div>
+          <div style="font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800; color: #10b981;">{{ total_exams }}</div>
+          <div style="font-size: 0.85rem; color: var(--text-dim);">Published Exams</div>
+        </div>
+        <div>
+          <div style="font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800; color: #f59e0b;">{{ total_certificates }}+</div>
+          <div style="font-size: 0.85rem; color: var(--text-dim);">Certificates Issued</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Scrollytelling Interactive Section 1: Instant Enrollment -->
+  <section class="story-step">
+    <div class="story-grid">
+      <div>
+        <div class="step-pill">01 • Smart Onboarding</div>
+        <h2 style="font-size: 2.2rem; margin-bottom: 16px;">Instant Student Registration &amp; Admin Enrollment</h2>
+        <p style="color: var(--text-muted); font-size: 1.05rem; margin-bottom: 24px;">
+          Students create their profile with verified College Roll Numbers, Departments, and secure credentials. All registered candidates are instantly updated on the Faculty Dashboard with real-time attempt tracking.
+        </p>
+        {% if current_user.is_authenticated %}
+          {% if current_user.is_admin %}
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">Access Faculty Dashboard &rarr;</a>
+          {% else %}
+            <a href="{{ url_for('student.dashboard') }}" class="btn btn-secondary">Enter My Examination Lobby &rarr;</a>
+          {% endif %}
+        {% else %}
+          <a href="{{ url_for('auth.register') }}" class="btn btn-secondary">Enroll as a New Candidate &rarr;</a>
+        {% endif %}
+      </div>
+      <div>
+        <div class="glass-card" style="border-left: 4px solid #33BC65; padding: 28px 32px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
+            <span style="font-weight: 700; color: #5DFFD9; font-size: 0.9rem;">Candidate Identity Card</span>
+            <span class="badge badge-passed">
+              {% if current_user.is_authenticated %}Active Session{% else %}Verified Demo{% endif %}
+            </span>
+          </div>
+          <div style="font-size: 1.35rem; font-weight: 800; color: #ffffff; margin-bottom: 4px;">
+            {% if current_user.is_authenticated %}{{ current_user.name }}{% else %}Sumit Kushwaha{% endif %}
+          </div>
+          <div style="font-size: 0.92rem; color: var(--text-muted); margin-bottom: 12px;">
+            Roll No: <code style="color: #5DFFD9; font-weight: 800; font-size: 1rem;">{% if current_user.is_authenticated %}{{ current_user.roll_no or '22BCS101' }}{% else %}22BCS101{% endif %}</code>
+          </div>
+          <div style="font-size: 0.85rem; color: var(--text-dim);">
+            Department: {% if current_user.is_authenticated %}{{ current_user.department or 'Computer Science & Engineering' }}{% else %}Computer Science & Engineering{% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Scrollytelling Interactive Section 2: Anti-Cheating & Proctoring -->
+  <section class="story-step">
+    <div class="story-grid">
+      <div>
+        <div class="glass-card" style="border-left: 4px solid #ef4444; padding: 28px 32px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
+            <span style="font-weight: 700; color: #f87171; font-size: 0.95rem;">Anti-Cheating Guard</span>
+            <span class="badge" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.45);">Active Guard</span>
+          </div>
+          <p style="font-size: 0.95rem; color: #ffffff; margin-bottom: 14px; line-height: 1.5;">
+            ⚠️ <strong>Tab-Switch Detected</strong>: Warning 1 of 3 recorded on server logs.
+          </p>
+          <div style="font-size: 0.85rem; color: var(--text-dim); line-height: 1.7; padding-left: 4px;">
+            • Fullscreen Enforcement Active<br>
+            • Right-Click & Copy-Paste Disabled<br>
+            • Automatic submission on 3rd violation
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="step-pill">02 • High-Integrity Proctoring</div>
+        <h2 style="font-size: 2.2rem; margin-bottom: 16px;">Real-Time Focus Detection & Timed Auto-Submit</h2>
+        <p style="color: var(--text-muted); font-size: 1.05rem; margin-bottom: 24px;">
+          The system actively monitors student window focus and browser state. Exiting fullscreen or navigating to external search engines triggers warning toasts and automatically terminates dishonest attempts.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Scrollytelling Interactive Section 3: Verified Downloadable Certificate -->
+  <section class="story-step">
+    <div class="story-grid">
+      <div>
+        <div class="step-pill">03 • Verified Certification</div>
+        <h2 style="font-size: 2.2rem; margin-bottom: 16px;">Instant Auto-Grading & Printable Achievement Certificates</h2>
+        <p style="color: var(--text-muted); font-size: 1.05rem; margin-bottom: 24px;">
+          Upon reaching the passing threshold, students receive an official digital certificate complete with unique Certificate ID, QR verification badge, score percentages, and faculty digital stamps.
+        </p>
+      </div>
+      <div>
+        <div class="glass-card" style="border: 2px solid #5DFFD9; background: rgba(15, 23, 42, 0.85); padding: 32px 28px;">
+          <div style="text-align: center;">
+            <div style="font-size: 2.2rem; margin-bottom: 6px;">🏆</div>
+            <div style="font-family: var(--font-certificate); font-size: 1.15rem; font-weight: 700; color: #5DFFD9; text-transform: uppercase; letter-spacing: 0.5px;">Certificate of Academic Excellence</div>
+            <div style="font-size: 0.85rem; color: var(--text-muted); margin: 8px 0;">Awarded to {% if current_user.is_authenticated %}<strong style="color: #ffffff;">{{ current_user.name }}</strong>{% else %}Candidate{% endif %} for Outstanding Performance</div>
+            <div style="font-size: 1.35rem; font-weight: 800; color: #ffffff; margin: 10px 0;">Grade A+ with Distinction</div>
+            <code style="font-size: 0.78rem; color: #12DCEF;">ID: OES-2026-CERT-{% if current_user.is_authenticated and current_user.roll_no %}{{ current_user.roll_no }}{% else %}8841-A9E2{% endif %}</code>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       GSAP ScrollTrigger Parity: Staggered Bento Grid & Kinetic Split Typography
+       ========================================================================== -->
+  <section class="staggered-grid-wrapper" data-staggered-grid>
+    <div style="text-align: center; margin-bottom: 20px;">
+      <div class="step-pill">🔥 Architecture Matrix</div>
+    </div>
+
+    <!-- Kinetic Center Text Split Letter-by-Letter -->
+    <div class="staggered-center-text" data-text="OES ENGINE">
+      OES ENGINE
+    </div>
+
+    <!-- 7-Column Parabolic Parallax Grid with Center Bento Container -->
+    <div class="staggered-grid-full">
+      <!-- Outer Col 0 -->
+      <div class="staggered-grid-item" data-col="0">
+        <span style="font-size: 1.8rem;">🔒</span>
+        <div style="font-size: 0.85rem; font-weight: 700; color: #ffffff;">SSL SHA-256</div>
+        <div style="font-size: 0.72rem; color: var(--text-muted);">Encrypted Session</div>
+      </div>
+
+      <!-- Outer Col 1 -->
+      <div class="staggered-grid-item" data-col="1">
+        <span style="font-size: 1.8rem;">⏱️</span>
+        <div style="font-size: 0.85rem; font-weight: 700; color: #ffffff;">Live Timers</div>
+        <div style="font-size: 0.72rem; color: var(--text-muted);">Sync to Second</div>
+      </div>
+
+      <!-- Outer Col 2 -->
+      <div class="staggered-grid-item" data-col="2">
+        <span style="font-size: 1.8rem;">⚡</span>
+        <div style="font-size: 0.85rem; font-weight: 700; color: #ffffff;">Auto Grading</div>
+        <div style="font-size: 0.72rem; color: var(--text-muted);">Zero Wait Time</div>
+      </div>
+
+      <!-- Center Columns (Span 3): Interactive Hover-Expandable Bento Box -->
+      <div class="bento-container" data-col="3">
+        <!-- Bento Tab 1: Anti-Cheat Guard -->
+        <div class="bento-item active">
+          <div class="bento-active-content">
+            <div>
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                <span class="badge" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4);">Proctoring</span>
+                <span style="font-size: 1.5rem;">🛡️</span>
+              </div>
+              <h3 style="font-size: 1.15rem; font-weight: 800; color: #ffffff; margin-bottom: 4px;">Anti-Cheat Guard</h3>
+              <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.45;">
+                Focus detection, window blur tracking, and auto-submission on 3 tab violations.
+              </p>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(93, 255, 217, 0.15); padding-top: 8px;">
+              <span style="font-size: 0.75rem; color: #5DFFD9; font-weight: 700;">Live Integrity</span>
+              <span style="font-size: 0.75rem; color: var(--text-dim);">Active &bull; 100%</span>
+            </div>
+          </div>
+          <div class="bento-inactive-content">
+            <span style="font-size: 1.8rem;">🛡️</span>
+            <span style="font-size: 0.75rem; font-weight: 700; color: #5DFFD9; text-transform: uppercase; letter-spacing: 0.5px;">Proctor</span>
+          </div>
+        </div>
+
+        <!-- Bento Tab 2: Question Pool Engine -->
+        <div class="bento-item inactive">
+          <div class="bento-active-content">
+            <div>
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                <span class="badge" style="background: rgba(18, 220, 239, 0.2); color: #12DCEF; border: 1px solid rgba(18, 220, 239, 0.4);">Question Bank</span>
+                <span style="font-size: 1.5rem;">🧠</span>
+              </div>
+              <h3 style="font-size: 1.15rem; font-weight: 800; color: #ffffff; margin-bottom: 4px;">Verified Question Pools</h3>
+              <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.45;">
+                Categorized by difficulty with step-by-step explanations and randomized options.
+              </p>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(93, 255, 217, 0.15); padding-top: 8px;">
+              <span style="font-size: 0.75rem; color: #12DCEF; font-weight: 700;">100+ MCQs</span>
+              <span style="font-size: 0.75rem; color: var(--text-dim);">9 Departments</span>
+            </div>
+          </div>
+          <div class="bento-inactive-content">
+            <span style="font-size: 1.8rem;">🧠</span>
+            <span style="font-size: 0.75rem; font-weight: 700; color: #12DCEF; text-transform: uppercase; letter-spacing: 0.5px;">MCQs</span>
+          </div>
+        </div>
+
+        <!-- Bento Tab 3: Official Verification -->
+        <div class="bento-item inactive">
+          <div class="bento-active-content">
+            <div>
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                <span class="badge" style="background: rgba(51, 188, 101, 0.2); color: #5DFFD9; border: 1px solid rgba(51, 188, 101, 0.4);">Certificates</span>
+                <span style="font-size: 1.5rem;">🏆</span>
+              </div>
+              <h3 style="font-size: 1.15rem; font-weight: 800; color: #ffffff; margin-bottom: 4px;">Academic Gold Certificates</h3>
+              <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.45;">
+                Instant generation with cryptographically verifiable ID, institute crest, and faculty seals.
+              </p>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(93, 255, 217, 0.15); padding-top: 8px;">
+              <span style="font-size: 0.75rem; color: #5DFFD9; font-weight: 700;">QR Verified</span>
+              <span style="font-size: 0.75rem; color: var(--text-dim);">Print-Ready</span>
+            </div>
+          </div>
+          <div class="bento-inactive-content">
+            <span style="font-size: 1.8rem;">🏆</span>
+            <span style="font-size: 0.75rem; font-weight: 700; color: #5DFFD9; text-transform: uppercase; letter-spacing: 0.5px;">Honors</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Outer Col 6 -->
+      <div class="staggered-grid-item" data-col="6">
+        <span style="font-size: 1.8rem;">📜</span>
+        <div style="font-size: 0.85rem; font-weight: 700; color: #ffffff;">PDF Export</div>
+        <div style="font-size: 0.72rem; color: var(--text-muted);">Direct Print</div>
+      </div>
+    </div>
+  </section>
+  </section>
+
+  <!-- 9 Academic Departments 3D Perspective Coverflow Carousel (Framer-Motion Parity) -->
+  <section style="padding: 70px 0 90px 0;">
+    <div style="text-align: center; max-width: 740px; margin: 0 auto 24px;">
+      <div class="step-pill">✨ Academic Matrix Universe</div>
+      <h2 style="font-size: 2.5rem; margin-bottom: 12px; font-weight: 800; color: #ffffff;">9 Official Academic Engineering Departments</h2>
+      <p style="color: var(--text-muted); font-size: 1.05rem;">
+        Accredited university curriculum disciplines with tailored question banks, verified examinations, and instant digital certifications.
+      </p>
+    </div>
+
+    <!-- 3D Perspective Coverflow Carousel Stage -->
+    <div class="perspective-carousel" data-perspective-carousel data-slide-width="340" data-rotation-step="38" data-inactive-scale="0.82" data-loop="true" data-autoplay="true">
+      <div class="perspective-viewport">
+        <div class="perspective-track">
+          {% for dept in departments %}
+            <div class="perspective-slide">
+              <div class="perspective-slide-card">
+                <div>
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                    <div style="font-size: 2.5rem; filter: drop-shadow(0 0 12px rgba(51, 188, 101, 0.5));">{{ dept.icon }}</div>
+                    <span class="badge" style="background: rgba(51, 188, 101, 0.15); color: #5DFFD9; border: 1px solid rgba(51, 188, 101, 0.35);">Code: {{ dept.code }}</span>
+                  </div>
+                  <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; color: #ffffff; text-align: left; line-height: 1.35;">{{ dept.name }}</h3>
+                  <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.55; text-align: left;">
+                    {{ dept.description }}
+                  </p>
+                </div>
+                
+                <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid rgba(93, 255, 217, 0.16); padding-top: 14px; margin-top: auto;">
+                  <span style="font-size: 0.76rem; color: #12DCEF; font-weight: 700; display: flex; align-items: center; gap: 4px;">
+                    <span>⚡</span> {{ dept.tag }}
+                  </span>
+                  {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('student.dashboard') }}" class="btn btn-secondary btn-sm" style="font-size: 0.76rem; padding: 5px 12px;">
+                      Enter Lobby &rarr;
+                    </a>
+                  {% else %}
+                    <a href="{{ url_for('auth.register', dept=dept.name) }}" class="btn btn-secondary btn-sm" style="font-size: 0.76rem; padding: 5px 12px;">
+                      Enroll Now &rarr;
+                    </a>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/staggered_bento_grid.js') }}"></script>
+<script src="{{ url_for('static', filename='js/perspective_carousel.js') }}"></script>
+<script src="{{ url_for('static', filename='js/scrollytelling.js') }}"></script>
+{% endblock %}

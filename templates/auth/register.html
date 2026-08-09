@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}Create Student Account | Department Roll Allocation{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+  <div class="auth-card" style="max-width: 580px; overflow: visible !important; position: relative; z-index: 50;">
+    <div style="text-align: center; margin-bottom: 24px;">
+      <div class="brand-icon-logo" style="margin: 0 auto 14px auto; width: 48px; height: 48px; font-size: 1.5rem;">
+        🎓
+      </div>
+      <h2 style="font-family: var(--font-heading); font-size: 1.75rem; font-weight: 800; color: #ffffff; margin-bottom: 4px;">
+        Candidate &amp; Student Registration
+      </h2>
+      <p style="color: var(--text-muted); font-size: 0.86rem;">
+        Select your department to automatically allocate your sequential academic roll number.
+      </p>
+    </div>
+
+    <form method="POST" action="{{ url_for('auth.register') }}">
+      <!-- Step 1: Department Selection First with Custom Glassmorphic Dropdown -->
+      <div class="form-group" style="background: rgba(255, 109, 41, 0.08); border: 1px solid rgba(255, 109, 41, 0.35); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 20px; position: relative; z-index: 100; overflow: visible !important;">
+        <label class="form-label" style="color: #ff9d6e; font-weight: 700; display: flex; align-items: center; justify-content: space-between;">
+          <span>🏛️ 1. Select Department / Branch *</span>
+          <span style="font-size: 0.75rem; color: var(--text-dim);">Batch: 2022-26</span>
+        </label>
+
+        <!-- Custom Warm Obsidian Glass Dropdown -->
+        <div class="custom-select-wrapper" style="position: relative; margin-top: 6px;">
+          <input type="hidden" id="department-input" name="department" value="{{ initial_dept }}" required>
+          <div class="custom-select-trigger" id="reg-dept-trigger" tabindex="0">
+            <span id="selected-reg-dept-text">{{ initial_dept }}</span>
+            <span class="custom-select-arrow">▼</span>
+          </div>
+          <div class="custom-select-menu" id="reg-dept-menu">
+            {% for dept in departments %}
+              <div class="custom-select-option {% if dept == initial_dept %}selected{% endif %}" data-value="{{ dept }}">
+                {{ dept }}
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Live Allocated Roll Number Badge -->
+        <div style="margin-top: 14px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+          <span style="font-size: 0.82rem; color: var(--text-muted);">Allocated Roll Number:</span>
+          <span id="roll-badge" class="badge" style="background: linear-gradient(135deg, #8EB69B 0%, #235347 100%); color: #051F20; font-size: 0.95rem; font-weight: 800; padding: 5px 16px; box-shadow: 0 0 18px rgba(142, 182, 155, 0.65); letter-spacing: 0.5px;">
+            {{ initial_roll }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Step 2: Personal & Contact Credentials -->
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="name">Full Name *</label>
+          <input 
+            type="text" 
+            id="name" 
+            name="name" 
+            class="form-control" 
+            placeholder="e.g. Aarav Sharma" 
+            required 
+            autofocus
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="email">College Email Address *</label>
+          <input 
+            type="email" 
+            id="email" 
+            name="email" 
+            class="form-control" 
+            placeholder="student@college.edu" 
+            required
+          >
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="phone">Phone Number (Optional)</label>
+        <input 
+          type="tel" 
+          id="phone" 
+          name="phone" 
+          class="form-control" 
+          placeholder="+91 98765 43210"
+        >
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="password">Create Password *</label>
+          <div class="password-input-wrapper">
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              class="form-control password-field" 
+              placeholder="Min 6 chars" 
+              required
+            >
+            <button type="button" class="password-toggle-btn" aria-label="Toggle password visibility" title="Show/Hide Password" tabindex="-1">
+              <span class="eye-icon">👁️</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="confirm_password">Confirm Password *</label>
+          <div class="password-input-wrapper">
+            <input 
+              type="password" 
+              id="confirm_password" 
+              name="confirm_password" 
+              class="form-control password-field" 
+              placeholder="Re-enter password" 
+              required
+            >
+            <button type="button" class="password-toggle-btn" aria-label="Toggle password visibility" title="Show/Hide Password" tabindex="-1">
+              <span class="eye-icon">👁️</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 6px;">
+        Complete Enrollment &amp; Enter Lobby &rarr;
+      </button>
+    </form>
+
+    <div style="text-align: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-glass);">
+      <p style="font-size: 0.86rem; color: var(--text-muted);">
+        Already registered? 
+        <a href="{{ url_for('auth.login') }}" style="color: #ff9d6e; font-weight: 600; text-decoration: none;">Sign In here</a>
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const trigger = document.getElementById("reg-dept-trigger");
+  const menu = document.getElementById("reg-dept-menu");
+  const hiddenInput = document.getElementById("department-input");
+  const selectedText = document.getElementById("selected-reg-dept-text");
+  const rollBadge = document.getElementById("roll-badge");
+  const wrapper = trigger ? trigger.closest(".custom-select-wrapper") : null;
+
+  if (!trigger || !menu || !wrapper) return;
+
+  // Toggle Dropdown
+  trigger.addEventListener("click", function (e) {
+    e.stopPropagation();
+    wrapper.classList.toggle("open");
+  });
+
+  // Select Option & Update Roll Number Live
+  menu.querySelectorAll(".custom-select-option").forEach((opt) => {
+    opt.addEventListener("click", function (e) {
+      e.stopPropagation();
+      const val = this.getAttribute("data-value");
+      hiddenInput.value = val;
+      selectedText.innerText = val;
+
+      menu.querySelectorAll(".custom-select-option").forEach(o => o.classList.remove("selected"));
+      this.classList.add("selected");
+      wrapper.classList.remove("open");
+
+      // Live Roll Number Allocation
+      if (rollBadge) {
+        rollBadge.innerText = "Allocating...";
+        rollBadge.style.opacity = "0.6";
+
+        fetch(`/auth/api/preview-roll-no?dept=${encodeURIComponent(val)}`)
+          .then((res) => res.json())
+          .then((data) => {
+            if (data && data.roll_no) {
+              rollBadge.innerText = data.roll_no;
+              rollBadge.style.opacity = "1";
+            }
+          })
+          .catch((err) => {
+            console.error("Roll preview error:", err);
+            rollBadge.style.opacity = "1";
+          });
+      }
+    });
+  });
+
+  // Close when clicking outside
+  document.addEventListener("click", function () {
+    if (wrapper) wrapper.classList.remove("open");
+  });
+});
+</script>
+{% endblock %}

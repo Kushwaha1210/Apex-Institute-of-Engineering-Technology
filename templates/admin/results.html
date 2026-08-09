@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Results & Merit List | Faculty Portal{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+    <div>
+      <h1 style="font-size: 2rem;" data-flip-text="Examination Results & Merit List">Examination Results &amp; Merit List</h1>
+      <p style="color: var(--text-muted); font-size: 0.95rem;">
+        Master leaderboard, verified certificate records, and student performance spreadsheets.
+      </p>
+    </div>
+    <div>
+      <a href="{{ url_for('admin.export_csv', exam_id=selected_exam_id) }}" class="btn btn-gold">
+        📥 Export Merit List (CSV)
+      </a>
+    </div>
+  </div>
+
+  <!-- Filter by Exam (Custom Glassmorphic Dropdown) -->
+  <div class="glass-card" style="margin-bottom: 24px; padding: 22px 26px; overflow: visible !important; position: relative; z-index: 200;">
+    <form id="results-filter-form" method="GET" action="{{ url_for('admin.results') }}" style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center;">
+      <div class="custom-select-wrapper" style="flex: 1; min-width: 280px; position: relative;">
+        <input type="hidden" name="exam_id" id="exam-hidden-input" value="{{ selected_exam_id or '' }}">
+        <div class="custom-select-trigger" id="exam-filter-trigger" tabindex="0">
+          <span id="selected-exam-text">
+            {% if selected_exam_id %}
+              {% for ex in exams %}{% if ex.id == selected_exam_id %}{{ ex.title }}{% endif %}{% endfor %}
+            {% else %}
+              🌟 All Examinations
+            {% endif %}
+          </span>
+          <span class="custom-select-arrow">▼</span>
+        </div>
+        <div class="custom-select-menu" id="exam-filter-menu">
+          <div class="custom-select-option {% if not selected_exam_id %}selected{% endif %}" data-value="">
+            🌟 All Examinations
+          </div>
+          {% for ex in exams %}
+            <div class="custom-select-option {% if ex.id == selected_exam_id %}selected{% endif %}" data-value="{{ ex.id }}">
+              {{ ex.title }}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      {% if selected_exam_id %}
+        <a href="{{ url_for('admin.results') }}" class="btn btn-secondary btn-sm">Clear Filter</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <!-- Results Table -->
+  <div class="glass-card" style="padding: 0 !important; overflow: hidden;">
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Candidate Name</th>
+            <th>Roll Number</th>
+            <th>Exam Title</th>
+            <th>Score</th>
+            <th>Percentage</th>
+            <th>Grade</th>
+            <th>Result</th>
+            <th>Certificate ID</th>
+            <th>Date Completed</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for att in attempts %}
+            <tr>
+              <td>
+                <span style="font-weight: 800; color: {% if loop.index == 1 %}#fbbf24{% elif loop.index == 2 %}#94a3b8{% elif loop.index == 3 %}#d97706{% else %}var(--text-dim){% endif %};">
+                  #{{ loop.index }}
+                </span>
+              </td>
+              <td>
+                <div style="font-weight: 700; color: #ffffff;">{{ att.student.name if att.student else 'Unknown' }}</div>
+                <div style="font-size: 0.75rem; color: var(--text-dim);">{{ att.student.department if att.student else '' }}</div>
+              </td>
+              <td>
+                <code style="color: #06b6d4; font-weight: 700;">{{ att.student.roll_no if att.student else 'N/A' }}</code>
+              </td>
+              <td>
+                <span style="font-size: 0.85rem;">{{ att.exam.title if att.exam else 'N/A' }}</span>
+              </td>
+              <td>
+                <strong>{{ att.score }} / {{ att.total_marks }}</strong>
+              </td>
+              <td>
+                <strong style="color: #818cf8;">{{ att.percentage }}%</strong>
+              </td>
+              <td>
+                <span class="badge badge-medium">{{ att.grade }}</span>
+              </td>
+              <td>
+                {% if att.is_passed %}
+                  <span class="badge badge-passed">Passed</span>
+                {% else %}
+                  <span class="badge badge-failed">Failed</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if att.certificate_id %}
+                  <a href="{{ url_for('student.download_certificate', attempt_id=att.id) }}" target="_blank" style="color: #fbbf24; font-size: 0.8rem; font-weight: 600;">
+                    📜 {{ att.certificate_id }}
+                  </a>
+                {% else %}
+                  <span style="color: var(--text-dim); font-size: 0.8rem;">-</span>
+                {% endif %}
+              </td>
+              <td>
+                <span style="font-size: 0.8rem; color: var(--text-muted);">
+                  {{ att.submitted_at.strftime('%b %d, %Y') if att.submitted_at else 'Incomplete' }}
+                </span>
+              </td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="10" style="text-align: center; padding: 36px; color: var(--text-dim);">
+                No exam submissions recorded for this selection.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const trigger = document.getElementById("exam-filter-trigger");
+  const wrapper = trigger ? trigger.closest(".custom-select-wrapper") : null;
+  const menu = document.getElementById("exam-filter-menu");
+  const hiddenInput = document.getElementById("exam-hidden-input");
+  const selectedText = document.getElementById("selected-exam-text");
+  const form = document.getElementById("results-filter-form");
+
+  if (trigger && wrapper && menu) {
+    trigger.addEventListener("click", function(e) {
+      e.stopPropagation();
+      wrapper.classList.toggle("open");
+    });
+
+    menu.querySelectorAll(".custom-select-option").forEach(opt => {
+      opt.addEventListener("click", function(e) {
+        e.stopPropagation();
+        const val = this.getAttribute("data-value");
+        const txt = this.textContent.trim();
+        hiddenInput.value = val;
+        selectedText.textContent = txt;
+        menu.querySelectorAll(".custom-select-option").forEach(o => o.classList.remove("selected"));
+        this.classList.add("selected");
+        wrapper.classList.remove("open");
+        if (form) form.submit();
+      });
+    });
+
+    document.addEventListener("click", function(e) {
+      if (!wrapper.contains(e.target)) {
+        wrapper.classList.remove("open");
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

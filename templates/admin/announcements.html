@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block title %}Broadcast Announcements & Notifications | Faculty Portal{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Page Header -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; flex-wrap: wrap; gap: 16px;">
+    <div>
+      <h1 style="font-size: 2rem; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 12px;">
+        <span>📢</span>
+        <span data-flip-text="Faculty Announcements & Notifications">Faculty Announcements & Notifications</span>
+      </h1>
+      <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 4px;">
+        Broadcast official notices, schedule alerts, and examine real-time candidate enrollment notifications.
+      </p>
+    </div>
+    <div style="display: flex; gap: 12px;">
+      <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary btn-sm">&larr; Back to Dashboard</a>
+    </div>
+  </div>
+
+  <!-- Main Grid: Broadcaster Form & Live Feeds -->
+  <div style="display: grid; grid-template-columns: 1.1fr 1fr; gap: 24px;">
+    
+    <!-- Left Column: Broadcast New Announcement Form -->
+    <div>
+      <div class="glass-card" style="border-top: 2px solid #33BC65; padding: 30px 32px !important;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid rgba(93, 255, 217, 0.16);">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 1.5rem;">🎙️</span>
+            <h2 style="font-size: 1.25rem; font-weight: 700; color: #ffffff;">Broadcast New Announcement</h2>
+          </div>
+          <span class="badge" style="background: rgba(51, 188, 101, 0.15); color: #5DFFD9; border: 1px solid rgba(51, 188, 101, 0.35);">
+            Live Feed Engine
+          </span>
+        </div>
+
+        <form method="POST" action="{{ url_for('admin.announcements') }}">
+          <div class="form-group" style="margin-bottom: 22px;">
+            <label class="form-label" for="title" style="margin-bottom: 10px; display: block; font-weight: 600;">Announcement Title *</label>
+            <input 
+              type="text" 
+              id="title" 
+              name="title" 
+              class="form-control" 
+              placeholder="e.g. 📢 Mid-Term Examination Schedule & Proctoring Rules Released" 
+              required
+            >
+          </div>
+
+          <div class="form-row" style="margin-bottom: 22px; gap: 18px;">
+            <div class="form-group" style="min-width: 0; margin-bottom: 0;">
+              <label class="form-label" style="margin-bottom: 10px; display: block; font-weight: 600;">Target Audience / Branch</label>
+              <div class="custom-select-wrapper" style="position: relative;">
+                <input type="hidden" name="target_department" id="target_department_input" value="">
+                <div class="custom-select-trigger" id="dept-select-trigger" tabindex="0">
+                  <span id="selected-dept-text">🌐 All Departments (Global Broadcast)</span>
+                  <span class="custom-select-arrow">▼</span>
+                </div>
+                <div class="custom-select-menu" id="dept-select-menu">
+                  <div class="custom-select-option selected" data-value="" data-text="🌐 All Departments (Global Broadcast)">
+                    🌐 All Departments (Global Broadcast)
+                  </div>
+                  {% for dept in departments %}
+                    <div class="custom-select-option" data-value="{{ dept }}" data-text="{{ dept }}">
+                      {{ dept }}
+                    </div>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group" style="min-width: 0; margin-bottom: 0;">
+              <label class="form-label" style="margin-bottom: 10px; display: block; font-weight: 600;">Priority Level</label>
+              <div class="custom-select-wrapper" style="position: relative;">
+                <input type="hidden" name="priority" id="priority_input" value="normal">
+                <div class="custom-select-trigger" id="priority-select-trigger" tabindex="0">
+                  <span id="selected-priority-text">🔔 Normal Notice</span>
+                  <span class="custom-select-arrow">▼</span>
+                </div>
+                <div class="custom-select-menu" id="priority-select-menu">
+                  <div class="custom-select-option selected" data-value="normal" data-text="🔔 Normal Notice">
+                    🔔 Normal Notice
+                  </div>
+                  <div class="custom-select-option" data-value="high" data-text="⚡ High Priority">
+                    ⚡ High Priority
+                  </div>
+                  <div class="custom-select-option" data-value="urgent" data-text="🚨 Urgent / Action Required">
+                    🚨 Urgent / Action Required
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 24px;">
+            <label class="form-label" for="message" style="margin-bottom: 10px; display: block; font-weight: 600;">Announcement Details & Instructions *</label>
+            <textarea 
+              name="message" 
+              id="message" 
+              rows="5" 
+              class="form-control" 
+              style="padding: 16px 20px !important; line-height: 1.55;"
+              placeholder="Enter detailed notice, instructions, time guidelines, or exam room instructions for students..." 
+              required
+            ></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; justify-content: center; gap: 10px; padding: 14px 28px;">
+            <span>📢</span>
+            <span>Broadcast Announcement to Students &rarr;</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Published Announcements List -->
+      <div class="glass-card" style="margin-top: 24px;">
+        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+          <span>📋</span>
+          <span>Active Broadcasted Notices ({{ announcements|length }})</span>
+        </h3>
+
+        {% if announcements %}
+          <div style="display: flex; flex-direction: column; gap: 14px;">
+            {% for a in announcements %}
+              <div style="padding: 16px; background: rgba(0, 0, 0, 0.35); border: 1px solid var(--border-glass); border-radius: var(--radius-sm); border-left: 3px solid {% if a.priority == 'urgent' %}#ef4444{% elif a.priority == 'high' %}#f59e0b{% else %}#FF6D29{% endif %};">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 8px;">
+                  <div>
+                    <h4 style="font-size: 1rem; font-weight: 700; color: #ffffff; margin-bottom: 4px;">{{ a.title }}</h4>
+                    <span style="font-size: 0.78rem; color: var(--text-dim);">
+                      By {{ a.sender_name }} • {{ a.time_ago }}
+                      {% if a.target_department %}
+                        • <code style="color: #8EB69B;">{{ a.target_department }}</code>
+                      {% else %}
+                        • <span style="color: #DAF1DE;">All Branches</span>
+                      {% endif %}
+                    </span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="badge" style="font-size: 0.72rem; {% if a.priority == 'urgent' %}background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4);{% elif a.priority == 'high' %}background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4);{% else %}background: rgba(142, 182, 155, 0.2); color: #DAF1DE; border: 1px solid rgba(142, 182, 155, 0.4);{% endif %}">
+                      {{ a.priority|upper }}
+                    </span>
+                    <form method="POST" action="{{ url_for('admin.delete_announcement', announcement_id=a.id) }}" onsubmit="return confirm('Remove this announcement?');" style="margin: 0;">
+                      <button type="submit" class="btn-action btn-action-delete" title="Delete Announcement" style="padding: 4px 8px; font-size: 0.8rem;">
+                        🗑️
+                      </button>
+                    </form>
+                  </div>
+                </div>
+                <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; white-space: pre-line;">{{ a.message }}</p>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div style="text-align: center; padding: 32px 16px; color: var(--text-dim);">
+            <div style="font-size: 2.2rem; margin-bottom: 8px;">📭</div>
+            <p>No active announcements broadcasted yet. Use the form above to post one!</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Right Column: Real-Time Registration & System Alerts Feed -->
+    <div>
+      <div class="glass-card" style="border-top: 2px solid #8EB69B;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid var(--border-glass);">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 1.4rem;">🔔</span>
+            <h2 style="font-size: 1.25rem; font-weight: 700; color: #ffffff;">Admin Live Notifications</h2>
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="markAllNotificationsRead()" style="font-size: 0.78rem;">
+            ✓ Mark All Read
+          </button>
+        </div>
+
+        {% if admin_notifications %}
+          <div style="display: flex; flex-direction: column; gap: 12px; max-height: 650px; overflow-y: auto; padding-right: 4px;">
+            {% for n in admin_notifications %}
+              <div style="padding: 14px 16px; background: rgba(0, 0, 0, 0.35); border: 1px solid {% if not n.is_read %}rgba(142, 182, 155, 0.45){% else %}var(--border-glass){% endif %}; border-radius: var(--radius-sm); position: relative; transition: var(--transition);">
+                {% if not n.is_read %}
+                  <span style="position: absolute; top: 12px; right: 12px; width: 8px; height: 8px; border-radius: 50%; background: #8EB69B; box-shadow: 0 0 10px #8EB69B;"></span>
+                {% endif %}
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                  <span style="font-size: 1.1rem;">
+                    {% if n.category == 'registration' %}🎓{% elif n.category == 'exam' %}📝{% else %}📢{% endif %}
+                  </span>
+                  <h4 style="font-size: 0.95rem; font-weight: 700; color: {% if not n.is_read %}#ffffff{% else %}var(--text-muted){% endif %};">
+                    {{ n.title }}
+                  </h4>
+                </div>
+                <p style="font-size: 0.86rem; color: var(--text-dim); margin-bottom: 6px; line-height: 1.4;">
+                  {{ n.message }}
+                </p>
+                <div style="font-size: 0.75rem; color: var(--text-dim); display: flex; justify-content: space-between;">
+                  <span>{{ n.time_ago }}</span>
+                  <span>{{ n.sender_name }}</span>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div style="text-align: center; padding: 40px 16px; color: var(--text-dim);">
+            <div style="font-size: 2.4rem; margin-bottom: 8px;">✨</div>
+            <p>No unread alerts. You are completely up to date!</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function markAllNotificationsRead() {
+  fetch("{{ url_for('admin.mark_notifications_read') }}", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" }
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.status === "success") {
+      const badge = document.querySelector(".nav-notification-badge");
+      if (badge) badge.remove();
+      window.location.reload();
+    }
+  });
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+  // Universal Custom Select Setup for Target Department & Priority
+  document.querySelectorAll(".custom-select-wrapper").forEach(wrapper => {
+    const trigger = wrapper.querySelector(".custom-select-trigger");
+    const input = wrapper.querySelector("input[type='hidden']");
+    const labelSpan = trigger ? trigger.querySelector("span:first-child") : null;
+    const options = wrapper.querySelectorAll(".custom-select-option");
+
+    if (trigger) {
+      trigger.addEventListener("click", function(e) {
+        e.stopPropagation();
+        // Close other custom dropdowns
+        document.querySelectorAll(".custom-select-wrapper").forEach(w => {
+          if (w !== wrapper) w.classList.remove("open");
+        });
+        wrapper.classList.toggle("open");
+      });
+    }
+
+    options.forEach(opt => {
+      opt.addEventListener("click", function(e) {
+        e.stopPropagation();
+        options.forEach(o => o.classList.remove("selected"));
+        this.classList.add("selected");
+        const val = this.getAttribute("data-value") || "";
+        const txt = this.getAttribute("data-text") || this.innerText;
+        if (input) input.value = val;
+        if (labelSpan) labelSpan.innerText = txt;
+        wrapper.classList.remove("open");
+      });
+    });
+  });
+
+  // Close custom dropdowns on outside click
+  document.addEventListener("click", function() {
+    document.querySelectorAll(".custom-select-wrapper").forEach(w => w.classList.remove("open"));
+  });
+});
+</script>
+{% endblock %}

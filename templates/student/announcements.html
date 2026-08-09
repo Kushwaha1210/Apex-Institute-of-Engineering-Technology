@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Official Announcements & Notifications | Student Portal{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Page Header -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; flex-wrap: wrap; gap: 16px;">
+    <div>
+      <h1 style="font-size: 2rem; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 12px;">
+        <span>📢</span>
+        <span data-flip-text="Official Announcements & Notices">Official Announcements & Notices</span>
+      </h1>
+      <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 4px;">
+        Official circulars, examination schedules, and department notices broadcasted by Faculty.
+      </p>
+    </div>
+    <div style="display: flex; gap: 12px;">
+      <a href="{{ url_for('student.dashboard') }}" class="btn btn-secondary btn-sm">&larr; Back to Lobby</a>
+    </div>
+  </div>
+
+  <!-- Active Broadcasts Feed -->
+  {% if notifications %}
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+      {% for n in notifications %}
+        <div class="glass-card" style="border-left: 4px solid {% if n.priority == 'urgent' %}#ef4444{% elif n.priority == 'high' %}#f59e0b{% else %}#8EB69B{% endif %}; position: relative; transition: var(--transition);">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 14px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="font-size: 1.6rem;">
+                {% if n.priority == 'urgent' %}🚨{% elif n.priority == 'high' %}⚡{% elif n.category == 'department' %}🏛️{% elif n.category == 'exam' %}📝{% else %}📢{% endif %}
+              </span>
+              <div>
+                <h3 style="font-size: 1.25rem; font-weight: 700; color: #ffffff; margin-bottom: 3px;">{{ n.title }}</h3>
+                <div style="font-size: 0.82rem; color: var(--text-dim); display: flex; align-items: center; gap: 8px;">
+                  <span>By <strong>{{ n.sender_name }}</strong></span>
+                  <span>•</span>
+                  <span>{{ n.time_ago }}</span>
+                  {% if n.target_department %}
+                    <span>•</span>
+                    <span class="badge" style="background: rgba(142, 182, 155, 0.15); color: #DAF1DE; font-size: 0.74rem;">{{ n.target_department }}</span>
+                  {% else %}
+                    <span>•</span>
+                    <span class="badge" style="background: rgba(142, 182, 155, 0.2); color: #8EB69B; font-size: 0.74rem;">Global Notice</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            <span class="badge" style="font-size: 0.78rem; {% if n.priority == 'urgent' %}background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4);{% elif n.priority == 'high' %}background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4);{% else %}background: rgba(142, 182, 155, 0.2); color: #DAF1DE; border: 1px solid rgba(142, 182, 155, 0.4);{% endif %}">
+              {{ n.priority|upper }}
+            </span>
+          </div>
+
+          <div style="font-size: 0.95rem; color: #f1f5f9; line-height: 1.65; background: rgba(0, 0, 0, 0.35); padding: 18px 22px; border-radius: var(--radius-sm); border: 1px solid rgba(255, 255, 255, 0.08); white-space: pre-line;">
+            {{ n.message }}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="glass-card" style="text-align: center; padding: 70px 20px;">
+      <div style="font-size: 3.2rem; margin-bottom: 12px;">📭</div>
+      <h3 style="font-size: 1.35rem; font-weight: 700; color: #ffffff; margin-bottom: 8px;">No Announcements Currently</h3>
+      <p style="color: var(--text-muted); font-size: 0.92rem; max-width: 460px; margin: 0 auto 24px auto;">
+        Faculty has not broadcasted any new announcements yet. Check back here regularly for exam schedules and department circulars.
+      </p>
+      <a href="{{ url_for('student.dashboard') }}" class="btn btn-primary btn-sm">Return to Examination Lobby</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
