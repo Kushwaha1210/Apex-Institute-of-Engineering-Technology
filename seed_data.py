@@ -485,36 +485,27 @@ def seed_database(force=False):
                 )
                 db.session.add(ans)
 
-        # 7. Seed Official Announcements & Notifications
-        print("[*] Seeding Official Announcements & Notifications...")
-        from models import Notification
-        notifs = [
-            Notification(
-                title="📢 Mid-Term Examination Schedule & Guidelines Released",
-                message="All registered candidates are advised to verify their department and roll numbers. Live proctoring, countdown timers, and fullscreen anti-cheating mode are active on all official examinations.",
-                category="announcement",
-                priority="urgent",
-                sender_name="Prof. Bhushan Chaudhari",
-                target_role="student",
-                target_department=None,
-                is_read=False
-            ),
-            Notification(
-                title="🏛️ New Academic Department Added: Artificial Intelligence & Data Science",
-                message="The Institute has launched curriculum modules for Artificial Intelligence & Data Science (BAI). Students can now enroll and attempt verified certifications.",
-                category="department",
-                priority="high",
-                sender_name="Academic Council",
-                target_role="student",
-                target_department=None,
-                is_read=False
-            )
-        ]
-        for n in notifs:
-            db.session.add(n)
+        # 7. Seed Official Announcements & Notifications (Optional)
+        if "--with-demo-notifications" in sys.argv:
+            print("[*] Seeding Official Announcements & Notifications...")
+            from models import Notification
+            notifs = [
+                Notification(
+                    title="📢 Mid-Term Examination Schedule & Guidelines Released",
+                    message="All registered candidates are advised to verify their department and roll numbers. Live proctoring, countdown timers, and fullscreen anti-cheating mode are active on all official examinations.",
+                    category="announcement",
+                    priority="urgent",
+                    sender_name="Prof. Bhushan Chaudhari",
+                    target_role="student",
+                    target_department=None,
+                    is_read=False
+                ),
+            ]
+            for n in notifs:
+                db.session.add(n)
 
         db.session.commit()
-        print("[+] Database successfully seeded with full academic dataset & announcements!")
+        print("[+] Database successfully seeded!")
 
 
 if __name__ == "__main__":
