@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="container">
-  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 16px;">
     <div>
       <h1 class="dashboard-hero-title" style="font-size: 2rem;" data-flip-text="Exam Builder & Scheduling">Exam Builder &amp; Scheduling</h1>
       <p class="dashboard-hero-sub">
@@ -15,6 +15,31 @@
       ➕ Create New Exam
     </button>
   </div>
+
+  <!-- Super Admin / Faculty Department Filter Chips -->
+  {% if is_superadmin %}
+    <div class="filter-chips-bar" style="margin-bottom: 20px; overflow-x: auto; padding-bottom: 8px;">
+      <div class="filter-chips-group">
+        <a href="{{ url_for('admin.exams') }}" class="filter-chip {% if not selected_dept_filter %}active{% endif %}">
+          <span>🌐 All Departments ({{ exams|length if not selected_dept_filter else 'All' }})</span>
+        </a>
+        {% for d in official_departments %}
+          <a href="{{ url_for('admin.exams', dept=d) }}" class="filter-chip {% if selected_dept_filter == d %}active{% endif %}">
+            <span>{{ d }}</span>
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+  {% else %}
+    <div class="filter-chips-bar" style="margin-bottom: 20px;">
+      <div class="filter-chips-group">
+        <div class="filter-chip active" style="cursor: default;">
+          <span class="status-dot"></span>
+          <span>Faculty Scoped &bull; {{ admin_department }} ({{ exams|length }} Tests)</span>
+        </div>
+      </div>
+    </div>
+  {% endif %}
 
   <!-- Published Exams 3D Perspective Coverflow Carousel Stage -->
   {% if exams %}
@@ -35,6 +60,13 @@
                       <h4>{{ exam.title }}</h4>
                       <p>{{ exam.description or 'Academic examination configured with proctoring and automated grading.' }}</p>
                     </div>
+                  </div>
+
+                  <!-- Department Badge -->
+                  <div style="margin-bottom: 10px;">
+                    <span class="card-v2-tag-pill" style="color: #60a5fa; border-color: rgba(96, 165, 250, 0.35); font-weight: 600; font-size: 0.75rem;">
+                      🏛️ {{ exam.department }}
+                    </span>
                   </div>
 
                   <!-- Tags / Type Section -->
@@ -59,7 +91,7 @@
                     </button>
                   </form>
 
-                  <form method="POST" action="{{ url_for('admin.delete_exam', exam_id=exam.id) }}" onsubmit="return confirm('Delete this exam and all associated attempt records?');" style="display: contents;">
+                  <form method="POST" action="{{ url_for('admin.delete_exam', exam_id=exam.id) }}" onsubmit="return confirm('Delete this exam and all associated attempt records? Students of this department will no longer see it.');" style="display: contents;">
                     <button type="submit" class="btn-v2-website" style="background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4); color: #f87171; box-shadow: none;">
                       🗑️ Delete
                     </button>
@@ -73,7 +105,7 @@
     </div>
   {% else %}
     <div class="glass-card" style="text-align: center; padding: 48px; margin-bottom: 28px;">
-      <p style="color: var(--text-dim); font-size: 1.1rem;">No exams created yet. Click "Create New Exam" above.</p>
+      <p style="color: var(--text-dim); font-size: 1.1rem;">No exams found{% if selected_dept_filter %} for {{ selected_dept_filter }}{% endif %}. Click "Create New Exam" above to create one.</p>
     </div>
   {% endif %}
 </div>
@@ -86,29 +118,45 @@
       <button class="alert-close" onclick="document.getElementById('create-exam-modal').style.display='none';">&times;</button>
     </div>
 
-    <form method="POST" action="{{ url_for('admin.create_exam') }}">
+    <form method="POST" action="{{ url_for('admin.create_exam') }}" onsubmit="return handleExamSubmit(this);">
       <div class="form-group">
         <label class="form-label">Exam Title *</label>
-        <input type="text" name="title" class="form-control" placeholder="e.g. Python Core & Advanced Certification Exam" required>
+        <input type="text" name="title" class="form-control" placeholder="e.g. Full-Stack Web Development Assessment" required>
       </div>
 
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Subject Domain *</label>
-          <select name="subject_id" class="form-control" required>
+          <select name="subject_id" id="subject-select" class="form-control" required onchange="syncDepartmentWithSubject(this);">
+            <option value="" disabled selected>-- Select Academic Subject --</option>
             {% for s in subjects %}
-              <option value="{{ s.id }}">{{ s.icon }} {{ s.name }} ({{ s.code }})</option>
+              <option value="{{ s.id }}" data-dept="{{ s.department }}">{{ s.icon }} {{ s.name }} ({{ s.code }}) &bull; {{ s.department }}</option>
             {% endfor %}
           </select>
         </div>
 
         <div class="form-group">
-          <label class="form-label">Duration (Minutes) *</label>
-          <input type="number" name="duration_minutes" class="form-control" value="30" min="5" max="180" required>
+          <label class="form-label">Target Student Department *</label>
+          {% if is_superadmin %}
+            <select name="department" id="department-select" class="form-control" required>
+              <option value="All Departments">🌐 All Departments (Universal Exam)</option>
+              {% for dept in official_departments %}
+                <option value="{{ dept }}">{{ dept }}</option>
+              {% endfor %}
+            </select>
+          {% else %}
+            <input type="text" class="form-control" value="{{ admin_department }}" readonly style="background: rgba(255,255,255,0.05); color: #60a5fa; cursor: not-allowed;">
+            <input type="hidden" name="department" value="{{ admin_department }}">
+          {% endif %}
         </div>
       </div>
 
       <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Duration (Minutes) *</label>
+          <input type="number" name="duration_minutes" class="form-control" value="30" min="5" max="180" required>
+        </div>
+
         <div class="form-group">
           <label class="form-label">Passing Marks Threshold *</label>
           <input type="number" step="0.5" name="passing_marks" class="form-control" value="12.5" required>
@@ -142,12 +190,12 @@
 
           <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
             <input type="checkbox" name="is_published" value="1" checked>
-            <span>Publish immediately (visible on Student Lobby)</span>
+            <span>Publish immediately (visible on target students' dashboard)</span>
           </label>
         </div>
       </div>
 
-      <button type="submit" class="btn btn-primary" style="width: 100%;">Create &amp; Publish Examination</button>
+      <button type="submit" id="create-exam-btn" class="btn btn-primary" style="width: 100%;">Create &amp; Publish Examination</button>
     </form>
   </div>
 </div>
@@ -155,4 +203,31 @@
 
 {% block extra_js %}
 <script src="{{ url_for('static', filename='js/perspective_carousel.js') }}"></script>
+<script>
+function handleExamSubmit(form) {
+  const btn = form.querySelector('#create-exam-btn') || form.querySelector('button[type="submit"]');
+  if (btn) {
+    if (btn.disabled) return false;
+    btn.disabled = true;
+    btn.style.opacity = '0.7';
+    btn.innerText = 'Creating & Publishing Examination...';
+  }
+  return true;
+}
+
+function syncDepartmentWithSubject(selectEl) {
+  const selectedOpt = selectEl.options[selectEl.selectedIndex];
+  if (!selectedOpt) return;
+  const subjectDept = selectedOpt.getAttribute('data-dept');
+  const deptSelect = document.getElementById('department-select');
+  if (deptSelect && subjectDept) {
+    for (let i = 0; i < deptSelect.options.length; i++) {
+      if (deptSelect.options[i].value === subjectDept) {
+        deptSelect.selectedIndex = i;
+        break;
+      }
+    }
+  }
+}
+</script>
 {% endblock %}

@@ -70,15 +70,8 @@ def dashboard():
         Exam.is_published == True,
         (Exam.department == target_dept) | (Exam.department == "All Departments")
     ).order_by(Exam.id.asc()).all()
-    dept_subjects = Subject.query.filter_by(department=target_dept).all()
+    dept_subjects = Subject.query.filter((Subject.department == target_dept) | (Subject.department == "All Departments")).all()
     display_dept_title = target_dept
-
-    # Fallback to all published exams only if no department-specific exams exist
-    if not available_exams:
-        available_exams = Exam.query.filter_by(is_published=True).order_by(Exam.id.asc()).all()
-        display_dept_title = "Published Examinations"
-    if not dept_subjects:
-        dept_subjects = Subject.query.all()
 
     my_attempts = Attempt.query.filter_by(student_id=current_user.id).order_by(Attempt.started_at.desc()).all()
     stats = current_user.get_stats()
@@ -112,6 +105,13 @@ def take_exam(exam_id):
     if not exam.is_published and not current_user.is_admin:
         flash("This exam is currently not active or unpublished.", "warning")
         return redirect(url_for("student.dashboard"))
+
+    # Verify candidate belongs to the exam's department
+    if not current_user.is_admin:
+        student_dept = normalize_department(current_user.department)
+        if exam.department != "All Departments" and exam.department != student_dept:
+            flash(f"This examination is configured specifically for '{exam.department}' candidates.", "warning")
+            return redirect(url_for("student.dashboard"))
 
     # Check if student already completed this exam
     previous_attempt = Attempt.query.filter_by(

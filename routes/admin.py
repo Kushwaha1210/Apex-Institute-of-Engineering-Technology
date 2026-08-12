@@ -392,20 +392,37 @@ def exams():
     """Exam Management: view, create, toggle publish, and configure rules."""
     is_super = current_user.is_superadmin
     admin_dept = current_user.department
+    dept_filter = request.args.get("dept", "").strip()
+
+    from routes.student import OFFICIAL_DEPARTMENTS
 
     if is_super or admin_dept in ["All Departments", None]:
-        all_exams = Exam.query.order_by(Exam.created_at.desc()).all()
+        if dept_filter and dept_filter != "All":
+            all_exams = Exam.query.filter(Exam.department == dept_filter).order_by(Exam.created_at.desc()).all()
+        else:
+            all_exams = Exam.query.order_by(Exam.created_at.desc()).all()
     else:
         all_exams = Exam.query.filter((Exam.department == admin_dept) | (Exam.department == "All Departments")).order_by(Exam.created_at.desc()).all()
 
     subjects = Subject.query.order_by(Subject.name).all()
     questions = Question.query.all()
-    return render_template("admin/exams.html", exams=all_exams, subjects=subjects, questions=questions, is_superadmin=is_super, admin_department=admin_dept)
+    return render_template(
+        "admin/exams.html",
+        exams=all_exams,
+        subjects=subjects,
+        questions=questions,
+        is_superadmin=is_super,
+        admin_department=admin_dept,
+        official_departments=OFFICIAL_DEPARTMENTS,
+        selected_dept_filter=dept_filter
+    )
 
 
 @admin_bp.route("/exams/new", methods=["POST"])
 def create_exam():
     """Create a new exam with duration, passing marks, negative marks, and questions."""
+    from datetime import timedelta
+    
     title = request.form.get("title", "").strip()
     subject_id = request.form.get("subject_id", type=int)
     description = request.form.get("description", "").strip()
@@ -418,13 +435,32 @@ def create_exam():
     is_published = bool(request.form.get("is_published"))
     selected_question_ids = request.form.getlist("question_ids")
 
-    # Set department: either from form or default to HOD's department
-    exam_dept = request.form.get("department", "").strip()
-    if not exam_dept:
-        exam_dept = current_user.department if (not current_user.is_superadmin and current_user.department != "All Departments") else "All Departments"
-
     if not title or not subject_id:
         flash("Exam Title and Subject are required.", "warning")
+        return redirect(url_for("admin.exams"))
+
+    # Set department: either from form, from subject, or default to HOD's department
+    exam_dept = request.form.get("department", "").strip()
+    subject = db.session.get(Subject, subject_id) if hasattr(db.session, 'get') else Subject.query.get(subject_id)
+    if not exam_dept or exam_dept == "inherit":
+        if subject and subject.department:
+            exam_dept = subject.department
+        elif not current_user.is_superadmin and current_user.department and current_user.department != "All Departments":
+            exam_dept = current_user.department
+        else:
+            exam_dept = "Computer Science & Engineering"
+
+    # Idempotency guard: prevent duplicate submission within 10 seconds
+    ten_sec_ago = datetime.utcnow() - timedelta(seconds=10)
+    recent_dup = Exam.query.filter(
+        Exam.title == title,
+        Exam.subject_id == subject_id,
+        Exam.department == exam_dept,
+        Exam.created_by == current_user.id,
+        Exam.created_at >= ten_sec_ago
+    ).first()
+    if recent_dup:
+        flash(f"Exam '{title}' was already created a moment ago.", "info")
         return redirect(url_for("admin.exams"))
 
     # If no questions selected manually, auto-include all questions from the chosen subject

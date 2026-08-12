@@ -76,23 +76,19 @@ def seed_database(force=False):
             fac.set_password(fpwd)
             db.session.add(fac)
 
-        # 3. Default Registered Student (Sumit Kushwaha)
+        # 3. Default Enrolled Students across all 9 Engineering Departments
         students_data = [
             ("Sumit Kushwaha", "BCS2026001", "Computer Science & Engineering", "sumit@oes.com", "+91 98111 22334", "Sumit123"),
+            ("Laukik Lakhat", "BIT2026001", "Information Technology", "lovekik@oes.com", "+91 98222 33445", "Laukik123"),
+            ("Priya Verma", "BAI2026001", "Artificial Intelligence & Data Science", "priya@oes.com", "+91 98333 44556", "Priya123"),
+            ("Rohit Sharma", "BCY2026001", "Cyber Security & Digital Forensics", "rohit@oes.com", "+91 98444 55667", "Rohit123"),
+            ("Sneha Patel", "BEC2026001", "Electronics & Communication Engineering", "sneha@oes.com", "+91 98555 66778", "Sneha123"),
+            ("Aman Singh", "BEE2026001", "Electrical Engineering", "aman@oes.com", "+91 98666 77889", "Aman123"),
+            ("Vikas Yadav", "BME2026001", "Mechanical Engineering", "vikas@oes.com", "+91 98777 88990", "Vikas123"),
+            ("Pooja Nair", "BCE2026001", "Civil Engineering", "pooja@oes.com", "+91 98888 99001", "Pooja123"),
+            ("Rohan Roy", "BBT2026001", "Biotechnology Engineering", "rohan@oes.com", "+91 98999 00112", "Rohan123"),
+            ("Sahil Gupta", "BCS2026002", "Computer Science & Engineering", "sahil@oes.com", "+91 98123 45678", "Sahil123"),
         ]
-
-        if "--with-demo-students" in sys.argv:
-            students_data.extend([
-                ("Laukik Lakhat", "BIT2026001", "Information Technology", "lovekik@oes.com", "+91 98222 33445", "Laukik123"),
-                ("Priya Verma", "BAI2026001", "Artificial Intelligence & Data Science", "priya@oes.com", "+91 98333 44556", "Priya123"),
-                ("Rohit Sharma", "BCY2026001", "Cyber Security & Digital Forensics", "rohit@oes.com", "+91 98444 55667", "Rohit123"),
-                ("Sneha Patel", "BEC2026001", "Electronics & Communication Engineering", "sneha@oes.com", "+91 98555 66778", "Sneha123"),
-                ("Aman Singh", "BEE2026001", "Electrical Engineering", "aman@oes.com", "+91 98666 77889", "Aman123"),
-                ("Vikas Yadav", "BME2026001", "Mechanical Engineering", "vikas@oes.com", "+91 98777 88990", "Vikas123"),
-                ("Pooja Nair", "BCE2026001", "Civil Engineering", "pooja@oes.com", "+91 98888 99001", "Pooja123"),
-                ("Rohan Roy", "BBT2026001", "Biotechnology Engineering", "rohan@oes.com", "+91 98999 00112", "Rohan123"),
-                ("Sahil Gupta", "BCS2026002", "Computer Science & Engineering", "sahil@oes.com", "+91 98123 45678", "Sahil123"),
-            ])
 
         created_students = []
         for name, roll, dept, email, phone, pwd in students_data:
@@ -299,43 +295,19 @@ def seed_database(force=False):
         # 5. Create Ready-to-Test Published Examinations (Exactly 1 Flagship Exam per Department = 9 Exams Total)
         print("[*] Creating Exactly 9 Published Examinations (1 per Department)...")
         exams_meta = [
-            # 1. Computer Science & Engineering (4 Subjects)
+            # 1. Computer Science & Engineering
             (
                 "Python Core & Advanced Certification Exam",
                 "PYTHON",
                 "Official university evaluation covering Python data structures, OOPs, list comprehensions, and exception handling.",
                 30, 25.0, 12.5, 0.25, False, True, False, "Computer Science & Engineering"
             ),
-            (
-                "DBMS & SQL Query Mastery Exam",
-                "DBMS",
-                "Assessment on relational schema design, SQL DDL/DML, Normalization (1NF-BCNF), and ACID transaction properties.",
-                25, 25.0, 12.5, 0.25, False, True, False, "Computer Science & Engineering"
-            ),
-            (
-                "Data Structures & Algorithms Live Challenge",
-                "DSA",
-                "Algorithmic analysis of trees, sorting algorithms, graphs, Dijkstra, and complexity optimization.",
-                35, 25.0, 12.5, 0.25, False, True, False, "Computer Science & Engineering"
-            ),
-            (
-                "Operating Systems & Concurrency Mock Test",
-                "OS",
-                "Practice assessment for process synchronization, CPU scheduling, semaphores, and virtual memory thrashing.",
-                20, 25.0, 10.0, 0.0, True, True, False, "Computer Science & Engineering"
-            ),
-            # 2. Information Technology (2 Subjects)
+            # 2. Information Technology
             (
                 "Full-Stack Web Development Assessment",
                 "WEB",
                 "Covers modern HTML5, CSS Flexbox, JavaScript ES6+, RESTful APIs, and asynchronous promises.",
                 30, 25.0, 12.5, 0.25, False, True, False, "Information Technology"
-            ),
-            (
-                "Computer Networks & OSI Protocols Exam",
-                "CN",
-                "Examination covering OSI 7 layers, TCP/IP handshake, subnetting, DNS, ARP, and routing algorithms.",
-                25, 25.0, 12.5, 0.25, False, True, False, "Information Technology"
             ),
             # 3. AI & Data Science
             (
@@ -386,13 +358,6 @@ def seed_database(force=False):
                 "Molecular biology evaluation covering reverse transcriptase, PCR thermal amplification, restriction enzymes, and GenBank.",
                 25, 25.0, 12.5, 0.25, False, True, False, "Biotechnology Engineering"
             ),
-            # 10. Universal (All Departments)
-            (
-                "General Aptitude & Logical Reasoning Test",
-                "APT",
-                "Quantitative problem solving, sequences, time-distance calculations, and analytical deductions.",
-                20, 20.0, 10.0, 0.0, True, True, False, "All Departments"
-            )
         ]
 
         created_exams = []
@@ -454,12 +419,13 @@ def seed_database(force=False):
             )
             db.session.add(ans)
 
-        # Sahil took IT Web Exam with Grade A (only if demo students created)
-        if len(created_students) > 1:
+        # Additional sample attempts across departments
+        if len(created_students) > 3:
+            # Laukik (IT) took Web Exam
             web_exam = created_exams[1]
-            sahil = created_students[1]
+            laukik = created_students[1]
             att2 = Attempt(
-                student_id=sahil.id,
+                student_id=laukik.id,
                 exam_id=web_exam.id,
                 started_at=datetime.utcnow() - timedelta(hours=5, minutes=20),
                 submitted_at=datetime.utcnow() - timedelta(hours=5),
@@ -478,6 +444,36 @@ def seed_database(force=False):
             for q in web_exam.questions:
                 ans = Answer(
                     attempt_id=att2.id,
+                    question_id=q.id,
+                    selected_option=q.correct_option,
+                    is_correct=True,
+                    marks_awarded=q.marks
+                )
+                db.session.add(ans)
+
+            # Priya (AI&DS) took Machine Learning Exam
+            ai_exam = created_exams[2]
+            priya = created_students[2]
+            att3 = Attempt(
+                student_id=priya.id,
+                exam_id=ai_exam.id,
+                started_at=datetime.utcnow() - timedelta(hours=6, minutes=28),
+                submitted_at=datetime.utcnow() - timedelta(hours=6),
+                score=25.0,
+                total_marks=25.0,
+                percentage=100.0,
+                grade="A+",
+                is_passed=True,
+                violations_count=0,
+                status="completed"
+            )
+            att3.generate_certificate_id()
+            db.session.add(att3)
+            db.session.flush()
+
+            for q in ai_exam.questions:
+                ans = Answer(
+                    attempt_id=att3.id,
                     question_id=q.id,
                     selected_option=q.correct_option,
                     is_correct=True,
