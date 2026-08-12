@@ -43,7 +43,7 @@
 
   <!-- Published Exams 3D Perspective Coverflow Carousel Stage -->
   {% if exams %}
-    <div class="perspective-carousel" data-perspective-carousel data-slide-width="340" data-rotation-step="38" data-inactive-scale="0.82" data-loop="true" data-autoplay="false">
+    <div class="perspective-carousel" data-perspective-carousel data-slide-width="360" data-rotation-step="38" data-inactive-scale="0.82" data-loop="true" data-autoplay="false">
       <div class="perspective-viewport">
         <div class="perspective-track">
           {% for exam in exams %}
@@ -85,14 +85,14 @@
 
                 <!-- Dual Action Buttons Footer -->
                 <div class="card-v2-actions-dual">
-                  <form method="POST" action="{{ url_for('admin.toggle_exam_publish', exam_id=exam.id) }}" style="display: contents;">
+                  <form method="POST" action="{{ url_for('admin.toggle_exam_publish', exam_id=exam.id) }}" style="flex: 1 1 50%; min-width: 0; margin: 0; padding: 0; display: block;">
                     <button type="submit" class="btn-v2-cancel" style="width: 100%;">
                       {% if exam.is_published %}👁️ Unpublish{% else %}🌐 Publish{% endif %}
                     </button>
                   </form>
 
-                  <form method="POST" action="{{ url_for('admin.delete_exam', exam_id=exam.id) }}" onsubmit="return confirm('Delete this exam and all associated attempt records? Students of this department will no longer see it.');" style="display: contents;">
-                    <button type="submit" class="btn-v2-website" style="background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4); color: #f87171; box-shadow: none;">
+                  <form method="POST" action="{{ url_for('admin.delete_exam', exam_id=exam.id) }}" onsubmit="return confirm('Delete this exam and all associated attempt records? Students of this department will no longer see it.');" style="flex: 1 1 50%; min-width: 0; margin: 0; padding: 0; display: block;">
+                    <button type="submit" class="btn-v2-delete-action" style="width: 100%;">
                       🗑️ Delete
                     </button>
                   </form>
